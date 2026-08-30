@@ -41,10 +41,10 @@ Funciones para LISTAS:
 
 template <class T> class LLink {
 public:
-	LLink<T>(T *o,LLink<T> *n=0) {
+	LLink(T *o,LLink<T> *n=0) {
 		obj=o;next=n;
 	};
-	~LLink<T>() {delete obj;
+	~LLink() {delete obj;
 				 if (next!=0) delete next;};
 	inline LLink<T> *Getnext() {return next;};
 	inline void Setnext(LLink<T> *n) {next=n;};
@@ -67,13 +67,13 @@ private:
 
 template <class T> class List {
 public:
-	List<T>() {list=0;act=0;top=0;original=true;};
-	~List<T>() {
+	List() {list=0;act=0;top=0;original=true;};
+	~List() {
 		if (original) {
 			delete list;
 		} /* if */ 
 	};
-	List<T>(List<T> &l) {list=l.list;act=list;top=l.top;original=false;};
+	List(List<T> &l) {list=l.list;act=list;top=l.top;original=false;};
 
 	void Delete() {
 		if (original) {
