@@ -258,9 +258,9 @@ public:
 	bool save_debug_report(char *filename);
 
 private:
-	bool cycle(unsigned char *keyboard);
-	bool construction_cycle(unsigned char *keyboard);
-	bool option_cycle(unsigned char *keyboard);
+	bool cycle(const unsigned char *keyboard);
+	bool construction_cycle(const unsigned char *keyboard);
+	bool option_cycle(const unsigned char *keyboard);
 
 	void draw(int w,int h);
 	void draw_game(bool shadows);
@@ -334,7 +334,7 @@ private:
 	int *map;
 	float lightpos[4];
 	Vector lightposv;
-	unsigned char old_keyboard[322];
+	unsigned char old_keyboard[SDL_NUM_SCANCODES];
 
 	float zoom;
 	Vector camera,viewp;
@@ -398,5 +398,7 @@ private:
 	
 
 };
+
+extern void swap_buffers(void);
 
 #endif

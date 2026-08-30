@@ -17,8 +17,8 @@
 #include "GL/glut.h"
 #endif
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"

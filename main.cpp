@@ -8,8 +8,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_mixer.h"
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 
 #include "list.h"
 #include "vector.h"
@@ -20,6 +25,9 @@
 #include "piece3dobject.h"
 #include "nether.h"
 
+static SDL_Window *window=0;
+static SDL_GLContext glcontext=0;
+
 /*						GLOBAL VARIABLES INITIALIZATION:							*/ 
 
 int SCREEN_X=640;
@@ -29,7 +37,7 @@ int COLOUR_DEPTH=32;
 int shadows=1;
 int detaillevel=4;
 bool sound=true;
-int up_key=SDLK_q,down_key=SDLK_a,left_key=SDLK_o,right_key=SDLK_p,fire_key=SDLK_SPACE,pause_key=SDLK_F1;
+int up_key=SDL_SCANCODE_Q,down_key=SDL_SCANCODE_A,left_key=SDL_SCANCODE_O,right_key=SDL_SCANCODE_P,fire_key=SDL_SCANCODE_SPACE,pause_key=SDL_SCANCODE_F1;
 int level=1;
 int mainmenu_status=0;
 int mainmenu_substatus=0;
@@ -51,7 +59,6 @@ int init_time=0;
 
 
 /* Surfaces: */ 
-SDL_Surface *screen_sfc;
 
 NETHER *game=0;
 
@@ -71,29 +78,14 @@ void pause(unsigned int time)
 } /* pause */ 
 
 
-SDL_Surface *initialization(int flags) 
+bool initialization(Uint32 windowflags) 
 {
-    const SDL_VideoInfo* info=0;
-    int bpp=0;
-	SDL_Surface *screen;
+    Uint32 flags=windowflags;
 
     if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)<0) {
         fprintf(stderr,"Video initialization failed: %s\n",SDL_GetError());
-		return 0;
+		return false;
     } /* if */ 
-
-    info=SDL_GetVideoInfo();
-
-    if(!info) {
-        fprintf(stderr,"Video query failed: %s\n",SDL_GetError());
-		return 0;
-    } /* if */ 
-
-	if (fullscreen) {
-		bpp=COLOUR_DEPTH;
-	} else {
-	    bpp=info->vfmt->BitsPerPixel;
-	} /* if */ 
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
@@ -102,31 +94,84 @@ SDL_Surface *initialization(int flags)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,1);
 
-    flags=SDL_OPENGL|flags;
-
-	screen=SDL_SetVideoMode(SCREEN_X,SCREEN_Y,bpp,flags);
-    if(screen==0) {
+	window=SDL_CreateWindow("Nether Earth REMAKE v0.52",
+                            SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,
+                            SCREEN_X,SCREEN_Y,
+                            SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE|flags);
+    if(window==0) {
         fprintf(stderr,"Video mode set failed: %s\n",SDL_GetError());
-		return 0;
+		return false;
     } /* if */ 
+
+	glcontext=SDL_GL_CreateContext(window);
+	if (glcontext==0) {
+		fprintf(stderr,"GL context creation failed: %s\n",SDL_GetError());
+		return false;
+	} /* if */ 
 
 	pause(400);
 	if (Mix_OpenAudio(22050, AUDIO_S16, 2, 1024)) {
-		return 0;
+		return false;
 	} /* if */ 
 
-	SDL_WM_SetCaption("Nether Earth REMAKE v0.52", 0);
 	SDL_ShowCursor(SDL_DISABLE);
 
-	return screen;
+	return true;
 } /* initialization */ 
 
 
 void finalization()
 {
 	Mix_CloseAudio();
+	if (glcontext) SDL_GL_DeleteContext(glcontext);
+	if (window) SDL_DestroyWindow(window);
 	SDL_Quit();
-} /* finalization */ 
+} /* finalization */
+
+
+bool apply_video_settings(bool fs)
+{
+	if (game!=0) game->refresh_display_lists();
+	if (nethertittle!=0) nethertittle->refresh_display_lists();
+	if (game!=0) game->deleteobjects();
+
+	SDL_GL_MakeCurrent(window,NULL);
+	SDL_GL_DeleteContext(glcontext);
+	glcontext=0;
+	SDL_DestroyWindow(window);
+	window=0;
+
+	window=SDL_CreateWindow("Nether Earth REMAKE v0.52",
+	                        SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,
+	                        SCREEN_X,SCREEN_Y,
+	                        SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE|(fs ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
+	if (window==0) {
+		fprintf(stderr,"Video mode set failed: %s\n",SDL_GetError());
+		return false;
+	} /* if */
+
+	glcontext=SDL_GL_CreateContext(window);
+	if (glcontext==0) {
+		fprintf(stderr,"GL context creation failed: %s\n",SDL_GetError());
+		return false;
+	} /* if */
+
+	if (game!=0) game->loadobjects();
+	return true;
+} /* apply_video_settings */
+
+
+void swap_buffers(void)
+{
+	SDL_GL_SwapWindow(window);
+} /* swap_buffers */
+
+
+void get_render_size(int &w,int &h)
+{
+	if (window) SDL_GL_GetDrawableSize(window,&w,&h);
+	else { w=SCREEN_X; h=SCREEN_Y; }
+} /* get_render_size */ 
 
 
 
@@ -140,13 +185,15 @@ int main(int argc, char** argv)
 #endif
 
 	int time,act_time;
+	int w,h;
 	SDL_Event event;
     bool quit = false;
 
+	glutInit(&argc, argv);
+
 	load_configuration();
 
-	screen_sfc = initialization((fullscreen ? SDL_FULLSCREEN : 0));
-	if (screen_sfc==0) return 0;
+	if (!initialization((fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0))) return 0;
 
 	time=init_time=SDL_GetTicks();
 
@@ -158,34 +205,11 @@ int main(int argc, char** argv)
 					if (event.key.keysym.sym==SDLK_F12) quit = true;
 
 					if (event.key.keysym.sym==SDLK_RETURN) {
-						SDLMod modifiers;
-
-						modifiers=SDL_GetModState();
-
-						if ((modifiers&KMOD_ALT)!=0) {
+						if ((event.key.keysym.mod & KMOD_ALT)!=0) {
 							/* Toogle FULLSCREEN mode: */ 
-							if (game!=0) game->refresh_display_lists();
-							if (nethertittle!=0) nethertittle->refresh_display_lists();
-							if (game!=0) game->deleteobjects();
 							if (fullscreen) fullscreen=false;
 									   else fullscreen=true;
-							SDL_QuitSubSystem(SDL_INIT_VIDEO);
-							SDL_InitSubSystem(SDL_INIT_VIDEO);
-							if (SDL_WasInit(SDL_INIT_VIDEO)) {
-								SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
-								SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
-								SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,8);
-								SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,16);
-								SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
-								SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,1);
-
-								screen_sfc = SDL_SetVideoMode(SCREEN_X, SCREEN_Y, COLOUR_DEPTH, SDL_OPENGL|(fullscreen ? SDL_FULLSCREEN : 0));
-								if (game!=0) game->loadobjects();
-								SDL_WM_SetCaption("Nether Earth REMAKE v0.5", 0);
-								SDL_ShowCursor(SDL_DISABLE);
-							} else {
-								quit = true;
-							} /* if */ 
+							if (!apply_video_settings(fullscreen)) quit = true;
 						} /* if */ 
 					} /* if */ 
                     break;
@@ -197,6 +221,7 @@ int main(int argc, char** argv)
             } /* switch */ 
         } /* while */ 
 
+		get_render_size(w,h);
 		act_time=SDL_GetTicks();
 		if (act_time-time>=REDRAWING_PERIOD)
 		{
@@ -212,14 +237,14 @@ int main(int argc, char** argv)
 				if ((act_time-time)>50*REDRAWING_PERIOD) time=act_time;
 			
 				if (game!=0) {
-					if (!game->gamecycle(SCREEN_X,SCREEN_Y)) {
+					if (!game->gamecycle(w,h)) {
 						delete game;
 						game=0;
 						mainmenu_status=0;
 						mainmenu_substatus=0;
 					} /* if */  
 				} else {
-					int val=mainmenu_cycle(SCREEN_X,SCREEN_Y);
+					int val=mainmenu_cycle(w,h);
 					if (val==1) {
 						char tmp[256];
 						sprintf(tmp,"maps/%s",mapname);
@@ -227,36 +252,16 @@ int main(int argc, char** argv)
 					} /* if */ 
 					if (val==2) quit=true;
 					if (val==3) {
-						if (game!=0) game->refresh_display_lists();
-						if (nethertittle!=0) nethertittle->refresh_display_lists();
-						if (game!=0) game->deleteobjects();
-						SDL_QuitSubSystem(SDL_INIT_VIDEO);
-						SDL_InitSubSystem(SDL_INIT_VIDEO);
-						if (SDL_WasInit(SDL_INIT_VIDEO)) {
-							
-							SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
-							SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
-							SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,8);
-							SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,16);
-							SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
-							SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,1);
-
-							screen_sfc = SDL_SetVideoMode(SCREEN_X, SCREEN_Y, COLOUR_DEPTH, SDL_OPENGL|(fullscreen ? SDL_FULLSCREEN : 0));
-							if (game!=0) game->loadobjects();
-							SDL_WM_SetCaption("Nether Earth REMAKE v0.5", 0);
-							SDL_ShowCursor(SDL_DISABLE);
-						} else {
-							quit = true;
-						} /* if */ 
+						if (!apply_video_settings(fullscreen)) quit=true;
 					} /* if */ 
 				} /* if */ 
 				act_time=SDL_GetTicks();
 			} while(act_time-time>=REDRAWING_PERIOD);
 
 			if (game!=0) {
-				game->gameredraw(SCREEN_X,SCREEN_Y);
+				game->gameredraw(w,h);
 			} else {
-				mainmenu_draw(SCREEN_X,SCREEN_Y);
+				mainmenu_draw(w,h);
 			} /* if */ 
 		} /* if */ 
 	} /* while */ 

@@ -16,8 +16,8 @@
 #include "GL/glut.h"
 #endif
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -446,10 +446,10 @@ bool NETHER::gamecycle(int w,int h)
 {
 	int i;
 	bool retval=true;
-	unsigned char *keyboard;
+	const unsigned char *keyboard;
 
 	SDL_PumpEvents();
-	keyboard = SDL_GetKeyState(NULL);
+	keyboard = SDL_GetKeyboardState(NULL);
 
 #ifdef _WRITE_REPORT_
 	fprintf(debug_fp,"Cycle start.\n");
@@ -471,7 +471,7 @@ bool NETHER::gamecycle(int w,int h)
 		break;
 	} /* switch */ 
 
-	for(i=0;i<SDLK_LAST;i++) old_keyboard[i]=keyboard[i];
+	for(i=0;i<SDL_NUM_SCANCODES;i++) old_keyboard[i]=keyboard[i];
 
 #ifdef _WRITE_REPORT_
 	fprintf(debug_fp,"Cycle end: %i\n",retval);
@@ -506,7 +506,7 @@ void NETHER::gameredraw(int w,int h)
 		break;
 	} /* switch */ 
 
-	SDL_GL_SwapBuffers();
+	swap_buffers();
 
 #ifdef _WRITE_REPORT_
 	fprintf(debug_fp,"Redraw end.");
@@ -1253,7 +1253,7 @@ void NETHER::options_draw(int w,int h)
 } /* NETHER::options_draw */ 
 
 
-bool NETHER::option_cycle(unsigned char *keyboard)
+bool NETHER::option_cycle(const unsigned char *keyboard)
 {
 	switch(game_state) {
 	case STATE_PAUSE:

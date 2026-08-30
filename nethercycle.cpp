@@ -18,8 +18,8 @@
 #include "GL/glut.h"
 #endif
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -44,7 +44,7 @@ extern float MINY,MAXY,MINX,MAXX;
 
 extern FILE *debug_fp;
 
-bool NETHER::cycle(unsigned char *keyboard)
+bool NETHER::cycle(const unsigned char *keyboard)
 {
 
 #ifdef _WRITE_REPORT_
@@ -57,11 +57,11 @@ bool NETHER::cycle(unsigned char *keyboard)
 	fflush(debug_fp);
 #endif
 
-	if (keyboard[SDLK_PAGEUP] || keyboard[SDLK_KP_MINUS]) {
+	if (keyboard[SDL_SCANCODE_PAGEUP] || keyboard[SDL_SCANCODE_KP_MINUS]) {
 		zoom*=1.1;
 		if (zoom>8) zoom=8;
 	} /* if */ 
-	if (keyboard[SDLK_PAGEDOWN] || keyboard[SDLK_KP_PLUS]) {
+	if (keyboard[SDL_SCANCODE_PAGEDOWN] || keyboard[SDL_SCANCODE_KP_PLUS]) {
 		zoom/=1.1;
 		if (zoom<0.5) zoom=0.5;
 	} /* if */ 

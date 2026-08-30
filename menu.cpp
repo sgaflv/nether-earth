@@ -11,8 +11,8 @@
 #include <GL/gl.h>
 #endif
 #include "GL/glu.h"
-#include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"

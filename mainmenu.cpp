@@ -21,8 +21,8 @@
 #include "GL/glut.h"
 #endif
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -66,20 +66,21 @@ List<char> mapnames;
 extern int mainmenu_status;
 extern int mainmenu_substatus;
 extern C3DObject *nethertittle;
-unsigned char old_keyboard[SDLK_LAST];
+unsigned char old_keyboard[SDL_NUM_SCANCODES];
 
 void save_configuration(void);
 void load_configuration(void);
+extern void swap_buffers(void);
 
 
 int mainmenu_cycle(int width,int height)
 {
 	int i;
 	int retval=0;
-	unsigned char *keyboard;
+	const unsigned char *keyboard;
 
 	SDL_PumpEvents();
-	keyboard = SDL_GetKeyState(NULL);
+	keyboard = SDL_GetKeyboardState(NULL);
 
 	switch(mainmenu_status) {
 	case 0:
@@ -92,19 +93,19 @@ int mainmenu_cycle(int width,int height)
 	case 1:
 		mainmenu_substatus++;
 		if ((keyboard[fire_key] && !old_keyboard[fire_key]) ||
-			(keyboard[SDLK_1] && !old_keyboard[SDLK_1])) {
+			(keyboard[SDL_SCANCODE_1] && !old_keyboard[SDL_SCANCODE_1])) {
 			mainmenu_status=4;
 			mainmenu_substatus=0;
 		} /* if */ 
-		if (keyboard[SDLK_2] && !old_keyboard[SDLK_2]) {
+		if (keyboard[SDL_SCANCODE_2] && !old_keyboard[SDL_SCANCODE_2]) {
 			mainmenu_status=6;
 			mainmenu_substatus=0;
 		} /* if */ 
-		if (keyboard[SDLK_3] && !old_keyboard[SDLK_3]) {
+		if (keyboard[SDL_SCANCODE_3] && !old_keyboard[SDL_SCANCODE_3]) {
 			mainmenu_status=2;
 			mainmenu_substatus=0;
 		} /* if */ 
-		if (keyboard[SDLK_4] && !old_keyboard[SDLK_4]) {
+		if (keyboard[SDL_SCANCODE_4] && !old_keyboard[SDL_SCANCODE_4]) {
 			/* Change the MAP: */ 
 			if (mapnames.EmptyP()) {
 				/* Fill the mapnames list: */ 
@@ -168,7 +169,7 @@ int mainmenu_cycle(int width,int height)
 
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_5] && !old_keyboard[SDLK_5]) {
+		if (keyboard[SDL_SCANCODE_5] && !old_keyboard[SDL_SCANCODE_5]) {
 			mainmenu_status=5;
 			mainmenu_substatus=0;
 		} /* if */ 
@@ -181,7 +182,7 @@ int mainmenu_cycle(int width,int height)
 		} /* if */ 
 		break;
 	case 3:
-		if (keyboard[SDLK_1] && !old_keyboard[SDLK_1]) {
+		if (keyboard[SDL_SCANCODE_1] && !old_keyboard[SDL_SCANCODE_1]) {
 			switch(SCREEN_X) {
 			case 320:
 				SCREEN_X=400;
@@ -210,7 +211,7 @@ int mainmenu_cycle(int width,int height)
 			retval=3;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_2] && !old_keyboard[SDLK_2]) {
+		if (keyboard[SDL_SCANCODE_2] && !old_keyboard[SDL_SCANCODE_2]) {
 			switch(COLOUR_DEPTH) {
 			case 8:COLOUR_DEPTH=16;
 				break;
@@ -224,38 +225,38 @@ int mainmenu_cycle(int width,int height)
 			retval=3;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_3] && !old_keyboard[SDLK_3]) {
+		if (keyboard[SDL_SCANCODE_3] && !old_keyboard[SDL_SCANCODE_3]) {
 			if (fullscreen) fullscreen=false;
 					   else fullscreen=true;
 			retval=3;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_4] && !old_keyboard[SDLK_4]) {
+		if (keyboard[SDL_SCANCODE_4] && !old_keyboard[SDL_SCANCODE_4]) {
 			shadows++;
 			if (shadows>=3) shadows=0;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_5] && !old_keyboard[SDLK_5]) {
+		if (keyboard[SDL_SCANCODE_5] && !old_keyboard[SDL_SCANCODE_5]) {
 			detaillevel++;
 			if (detaillevel>=5) detaillevel=0;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_6] && !old_keyboard[SDLK_6]) {
+		if (keyboard[SDL_SCANCODE_6] && !old_keyboard[SDL_SCANCODE_6]) {
 			if (sound) sound=false;
 				  else sound=true;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_7] && !old_keyboard[SDLK_7]) {
+		if (keyboard[SDL_SCANCODE_7] && !old_keyboard[SDL_SCANCODE_7]) {
 			level++;
 			if (level>=4) level=0;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_8] && !old_keyboard[SDLK_8]) {
+		if (keyboard[SDL_SCANCODE_8] && !old_keyboard[SDL_SCANCODE_8]) {
 			if (show_radar) show_radar=false;
 					   else show_radar=true;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDLK_9] && !old_keyboard[SDLK_9]) {
+		if (keyboard[SDL_SCANCODE_9] && !old_keyboard[SDL_SCANCODE_9]) {
 			mainmenu_status=0;
 			mainmenu_substatus=0;
 		} /* if */ 
@@ -283,7 +284,7 @@ int mainmenu_cycle(int width,int height)
 		{
 			int i;
 
-			for(i=0;i<SDLK_LAST;i++) {
+			for(i=0;i<SDL_NUM_SCANCODES;i++) {
 				if (keyboard[i] && !old_keyboard[i]) {
 					switch(mainmenu_substatus) {
 					case 0:up_key=i;
@@ -311,7 +312,7 @@ int mainmenu_cycle(int width,int height)
 		break;
 	} /* if */ 
 
-	for(i=0;i<SDLK_LAST;i++) old_keyboard[i]=keyboard[i];
+	for(i=0;i<SDL_NUM_SCANCODES;i++) old_keyboard[i]=keyboard[i];
 
 	return retval;
 } /* mainmenu_cycle */ 
@@ -439,33 +440,33 @@ void mainmenu_draw(int width,int height)
 			glTranslatef(0,-2,0);
 			if (mainmenu_substatus!=0) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR UP: %s",strupr(SDL_GetKeyName((SDLKey)up_key)));
+			sprintf(tmp,"PRESS A KEY FOR UP: %s",SDL_GetScancodeName((SDL_Scancode)up_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=1) glColor3f(0.5,0.5,1.0);
 						 	 	  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR DOWN: %s",strupr(SDL_GetKeyName((SDLKey)down_key)));
+			sprintf(tmp,"PRESS A KEY FOR DOWN: %s",SDL_GetScancodeName((SDL_Scancode)down_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=2) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR LEFT: %s",strupr(SDL_GetKeyName((SDLKey)left_key)));
+			sprintf(tmp,"PRESS A KEY FOR LEFT: %s",SDL_GetScancodeName((SDL_Scancode)left_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=3) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR RIGHT: %s",strupr(SDL_GetKeyName((SDLKey)right_key)));
+			sprintf(tmp,"PRESS A KEY FOR RIGHT: %s",SDL_GetScancodeName((SDL_Scancode)right_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=4) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR FIRE: %s",strupr(SDL_GetKeyName((SDLKey)fire_key)));
+			sprintf(tmp,"PRESS A KEY FOR FIRE: %s",SDL_GetScancodeName((SDL_Scancode)fire_key));
 			scaledglprintf(0.005,0.005,tmp);
 
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=5) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR PAUSE/MENU: %s",strupr(SDL_GetKeyName((SDLKey)pause_key)));
+			sprintf(tmp,"PRESS A KEY FOR PAUSE/MENU: %s",SDL_GetScancodeName((SDL_Scancode)pause_key));
 			scaledglprintf(0.005,0.005,tmp);
 
 			glColor3f(0.5,0.5,1.0);
@@ -481,7 +482,7 @@ void mainmenu_draw(int width,int height)
 		break;
 	} /* switch */ 
 
-	SDL_GL_SwapBuffers();
+	swap_buffers();
 } /* NETHER::draw */ 
 
 

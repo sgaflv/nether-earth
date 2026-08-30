@@ -1,0 +1,11 @@
+# Build artifacts
+*.o
+nether_earth
+
+# Runtime-generated user config
+nether.cfg
+
+# Editor / OS cruft
+*~
+*.swp
+.DS_Store

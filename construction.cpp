@@ -16,8 +16,8 @@
 #include "GL/glut.h"
 #endif
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -253,7 +253,7 @@ void NETHER::construction_draw(int width,int height)
 
 
 
-bool NETHER::construction_cycle(unsigned char *keyboard)
+bool NETHER::construction_cycle(const unsigned char *keyboard)
 {
 	if (construction_pointer==10 && keyboard[right_key] && !old_keyboard[right_key]) construction_pointer=20;
 	if (construction_pointer==0 && keyboard[right_key] && !old_keyboard[right_key]) construction_pointer=10;
