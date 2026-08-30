@@ -2,12 +2,12 @@
 #define __BRAIN_GLUTAUX
 
 
-float draw3Dtext(char *text,float dx,float dy,float dz,float r,float g,float b);
+float draw3Dtext(const char *text,float dx,float dy,float dz,float r,float g,float b);
 
 void glutSolidBox(float dx,float dy,float dz);
 
-void glutPrint(char *str);
-void glutPrintxy(float x,float y,char *str);
+void glutPrint(const char *str);
+void glutPrintxy(float x,float y,const char *str);
 
 void Normal(double vector1[3],double vector2[3],double resultado[3]);
 void Normalf(float vector1[3],float vector2[3],float resultado[3]);
@@ -39,7 +39,7 @@ double det_d(double *m,int size);
 
 double distancia_a_recta(Vector p,Vector pr,Vector vr);
 
-unsigned int createTexture(char *fname,int x,int y,int sz);
-unsigned int createTexture(char *fname);
+unsigned int createTexture(const char *fname,int x,int y,int sz);
+unsigned int createTexture(const char *fname);
 
 #endif

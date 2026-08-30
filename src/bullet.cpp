@@ -188,7 +188,7 @@ bool NETHER::BulletCollision(BULLET *bullet,ROBOT **r)
 	float m1[16]={1,0,0,0,
 				  0,1,0,0,
 				  0,0,1,0,
-				  bullet->pos.x,bullet->pos.y,0.3,1};
+				  (float)bullet->pos.x,(float)bullet->pos.y,0.3,1};
 	float m2[16]={1,0,0,0,
 				  0,1,0,0,
 				  0,0,1,0,

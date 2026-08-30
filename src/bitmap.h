@@ -3,7 +3,7 @@
 
 class Bitmap {
 public:
-	Bitmap(char *file);
+	Bitmap(const char *file);
 	~Bitmap();
 
 	bool valid(void) {return (r!=0 && g!=0 && b!=0);};

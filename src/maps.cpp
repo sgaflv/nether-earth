@@ -27,7 +27,7 @@ extern int detaillevel;
 extern float MINY,MAXY,MINX,MAXX;
 
 
-bool NETHER::loadmap(char *file)
+bool NETHER::loadmap(const char *file)
 {
 	FILE *fp;
 	int i;
@@ -48,7 +48,7 @@ bool NETHER::loadmap(char *file)
 	for(i=0;i<map_w*map_h;i++) {
 		int tile;
 		char tilestr[16];
-		char *tiles[]={"G","S","S2","M","H1",
+		const char *tiles[]={"G","S","S2","M","H1",
 			           "H2","H3","H4","H5","H6",
 					   "GG","SS","MM","?"};
 		bool found;

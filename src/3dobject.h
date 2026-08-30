@@ -4,13 +4,13 @@
 class C3DObject {
 public:
 	C3DObject();
-	C3DObject(char *file,char *texturedir);					/* Contruir a partir de un fichero		*/ 
+	C3DObject(const char *file,const char *texturedir);					/* Contruir a partir de un fichero		*/ 
 	~C3DObject();
 
 	void refresh_display_lists(void);
 
-	bool loadASC(char *file);
-	bool loadASE(char *file,char *texturedir);
+	bool loadASC(const char *file);
+	bool loadASE(const char *file,const char *texturedir);
 
 	bool valid(void);
 	void draw(void);

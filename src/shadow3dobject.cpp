@@ -25,7 +25,7 @@ Shadow3DObject::Shadow3DObject() : C3DObject()
 } /* Shadow3DObject::Shadow3DObject */ 
 
 
-Shadow3DObject::Shadow3DObject(char *file,char *texturedir) : C3DObject(file,texturedir)
+Shadow3DObject::Shadow3DObject(const char *file,const char *texturedir) : C3DObject(file,texturedir)
 {
 	shdw_npuntos=0;
 	shdw_ncaras=0;
@@ -92,7 +92,7 @@ void Shadow3DObject::ComputeShadow(Vector light)
 
 	pry_npuntos=npuntos;
 	pry_puntos=new float[npuntos*3];
-	/* Proyectar TODOS los triángulos sobre el plano Z: */ 
+	/* Proyectar TODOS los triï¿½ngulos sobre el plano Z: */ 
 	for(i=0;i<npuntos;i++) {
 		p[0]=puntos[i*3];
 		p[1]=puntos[i*3+1];
@@ -105,12 +105,12 @@ void Shadow3DObject::ComputeShadow(Vector light)
 		pry_puntos[i*3+2]=0;
 	} /* for */ 
 
-	/* Crear los triángulos proyectadas: */ 
+	/* Crear los triï¿½ngulos proyectadas: */ 
 	shdw_ncaras=0;
 	pry_ncaras=ncaras;
 	pry_caras=new int[ncaras*3];
 	for(i=0;i<ncaras;i++) {
-		/* Comprobar que el triángulo es visible: */ 
+		/* Comprobar que el triï¿½ngulo es visible: */ 
 
 		v[0]=puntos[caras[i*3+1]*3]-puntos[caras[i*3]*3];;
 		v[1]=puntos[caras[i*3+1]*3+1]-puntos[caras[i*3]*3+1];
@@ -130,7 +130,7 @@ void Shadow3DObject::ComputeShadow(Vector light)
 	} /* for */ 
 
 
-	/* Unir los triángulos proyectados: */ 
+	/* Unir los triï¿½ngulos proyectados: */ 
 	/* ... */ 
 
 	/* Copiarlos a las variables del objeto: */ 

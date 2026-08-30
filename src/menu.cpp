@@ -165,7 +165,7 @@ void NETHER::killmenu(int menu)
 } /* killmenu */ 
 
 
-void NETHER::newbutton(int ID,int x,int y,int sx,int sy,char *t1,char *t2,float r,float g,float b)
+void NETHER::newbutton(int ID,int x,int y,int sx,int sy,const char *t1,const char *t2,float r,float g,float b)
 {
 	STATUSBUTTON *but;
 
@@ -190,7 +190,7 @@ void NETHER::newbutton(int ID,int x,int y,int sx,int sy,char *t1,char *t2,float 
 } /* NETHER::newbutton */ 
 
 
-void NETHER::newbuttondelayed(int ID,int x,int y,int sx,int sy,char *t1,char *t2,float r,float g,float b)
+void NETHER::newbuttondelayed(int ID,int x,int y,int sx,int sy,const char *t1,const char *t2,float r,float g,float b)
 {
 	STATUSBUTTON *but;
 

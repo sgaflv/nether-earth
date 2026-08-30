@@ -243,7 +243,7 @@ public:
 
 class NETHER {
 public:
-	NETHER(char *mapname);
+	NETHER(const char *mapname);
 	~NETHER();
 
 	void loadobjects();
@@ -253,9 +253,9 @@ public:
 	void gameredraw(int w,int h);
 	void refresh_display_lists(void);
 
-	bool save_game(char *filename);
-	bool load_game(char *filename);
-	bool save_debug_report(char *filename);
+	bool save_game(const char *filename);
+	bool load_game(const char *filename);
+	bool save_debug_report(const char *filename);
 
 private:
 	bool cycle(const unsigned char *keyboard);
@@ -269,7 +269,7 @@ private:
 	void construction_draw(int w,int h);
 	void options_draw(int w,int h);
 
-	bool loadmap(char *file);
+	bool loadmap(const char *file);
 	void drawmap(bool shadows);
 
 	float MapMaxZ(float x[2],float y[2]);
@@ -295,8 +295,8 @@ private:
 
 	int SFX_volume(Vector pos);
 
-	void newbutton(int ID,int x,int y,int sx,int sy,char *t1,char *t2,float r,float g,float b);
-	void newbuttondelayed(int ID,int x,int y,int sx,int sy,char *t1,char *t2,float r,float g,float b);
+	void newbutton(int ID,int x,int y,int sx,int sy,const char *t1,const char *t2,float r,float g,float b);
+	void newbuttondelayed(int ID,int x,int y,int sx,int sy,const char *t1,const char *t2,float r,float g,float b);
 	void killbutton(int ID);
 	STATUSBUTTON *getbutton(int ID);
 	void newmenu(int menu);

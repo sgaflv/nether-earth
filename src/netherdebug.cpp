@@ -39,7 +39,7 @@ extern int up_key,down_key,left_key,right_key,fire_key,pause_key;
 extern int level;
 
 
-bool NETHER::save_debug_report(char *filename)
+bool NETHER::save_debug_report(const char *filename)
 {
 	int i,j;
 	FILE *fp;
@@ -97,7 +97,7 @@ bool NETHER::save_debug_report(char *filename)
 	List<EXPLOSION> explosions;
 */ 
 
-	fprintf(fp,"\nNº OF BUILDINGS: %i\n",buildings.Length());
+	fprintf(fp,"\nNï¿½ OF BUILDINGS: %i\n",buildings.Length());
 	buildings.Rewind();
 	while(buildings.Iterate(b)) {
 /*
@@ -111,11 +111,11 @@ bool NETHER::save_debug_report(char *filename)
 	} /* while */ 
 
 	for(i=0;i<2;i++) {
-		fprintf(fp,"\nNº OF ROBOTS PLAYER %i: %i\n",i,robots[i].Length());
+		fprintf(fp,"\nNï¿½ OF ROBOTS PLAYER %i: %i\n",i,robots[i].Length());
 		robots[i].Rewind();
 		while(robots[i].Iterate(r)) {
-			char *tractions[3]={"BIPOD","TRACKS","ANTIGRAV"};
-			char *pieces[5]={"CANNONS","MISSILES","PHASERS","NUCLEAR","ELECTRONICS"};
+			const char *tractions[3]={"BIPOD","TRACKS","ANTIGRAV"};
+			const char *pieces[5]={"CANNONS","MISSILES","PHASERS","NUCLEAR","ELECTRONICS"};
 /*
 			int traction;
 			bool pieces[5];
@@ -152,7 +152,7 @@ bool NETHER::save_debug_report(char *filename)
 		} /* while */ 
 	} /* for */ 
 
-	fprintf(fp,"\nNº BULLETS: %i\n",bullets.Length());
+	fprintf(fp,"\nNï¿½ BULLETS: %i\n",bullets.Length());
 
 	bullets.Rewind();
 	while(bullets.Iterate(bul)) {
@@ -181,7 +181,7 @@ bool NETHER::save_debug_report(char *filename)
 		fprintf(fp,"\n");
 	} /* while */ 
 
-	fprintf(fp,"\nNº EXPLOSIONS %i\n",explosions.Length());
+	fprintf(fp,"\nNï¿½ EXPLOSIONS %i\n",explosions.Length());
 	explosions.Rewind();
 	while(explosions.Iterate(e)) {
 /*

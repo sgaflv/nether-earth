@@ -42,7 +42,7 @@ C3DObject::C3DObject()
 
 
 
-C3DObject::C3DObject(char *file,char *texturedir)
+C3DObject::C3DObject(const char *file,const char *texturedir)
 {
 	int l;
 
@@ -64,7 +64,7 @@ C3DObject::C3DObject(char *file,char *texturedir)
 } /* C3DObject::C3DObject */ 
 
 
-bool C3DObject::loadASC(char *file)
+bool C3DObject::loadASC(const char *file)
 {
 	FILE *fp;
 	char buffer[256],buffer2[256],buffer3[256],buffer4[256],buffer5[256];
@@ -369,7 +369,7 @@ void C3DObject::CalculaNormales(int *smooth)
 		normales_tmp[i*3+2]=float(normal[2]);
 	} /* for */ 
 
-	/* Calcular las normales a cada vértice según sus grupos "smooth": */ 
+	/* Calcular las normales a cada vï¿½rtice segï¿½n sus grupos "smooth": */ 
 	for(i=0;i<ncaras;i++) {
 		for(j=0;j<3;j++) {
 			act_vertex=caras[i*3+j];

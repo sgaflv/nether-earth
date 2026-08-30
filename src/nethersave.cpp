@@ -39,7 +39,7 @@ extern int up_key,down_key,left_key,right_key,fire_key,pause_key;
 extern int level;
 
 
-bool NETHER::save_game(char *filename)
+bool NETHER::save_game(const char *filename)
 {
 	int i,j;
 	FILE *fp;
@@ -204,7 +204,7 @@ bool NETHER::save_game(char *filename)
 } /* NETHER::save_game */ 
 
 
-bool NETHER::load_game(char *filename)
+bool NETHER::load_game(const char *filename)
 {
 	int i,j,k,booltmp,length;
 	FILE *fp;

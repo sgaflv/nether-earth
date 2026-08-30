@@ -4,7 +4,7 @@
 class Shadow3DObject : public C3DObject {
 public:
 	Shadow3DObject();
-	Shadow3DObject(char *file,char *texturedir);						/* Contruir a partir de un fichero		*/ 
+	Shadow3DObject(const char *file,const char *texturedir);						/* Contruir a partir de un fichero		*/ 
 	~Shadow3DObject();
 
 

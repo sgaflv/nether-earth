@@ -44,7 +44,7 @@ FILE *debug_fp=0;
 #endif
 
 
-NETHER::NETHER(char *mapname)
+NETHER::NETHER(const char *mapname)
 {
 
 #ifdef _WRITE_REPORT_
@@ -250,22 +250,22 @@ NETHER::~NETHER()
 void NETHER::loadobjects(void)
 {
 	/* Load 3D objects: */ 
-	char *tnames[12]={"models/grass1.ase","models/rough.ase","models/rocks.ase","models/heavyrocks.ase",
+	const char *tnames[12]={"models/grass1.ase","models/rough.ase","models/rocks.ase","models/heavyrocks.ase",
 					  "models/hole1.asc","models/hole2.asc","models/hole3.asc",
 					  "models/hole4.asc","models/hole5.asc","models/hole6.asc",
 					  "models/grass2.ase","models/grass3.ase"};
-	char *bnames[9]={"models/lowwall1.ase","models/lowwall2.ase","models/lowwall3.ase",
+	const char *bnames[9]={"models/lowwall1.ase","models/lowwall2.ase","models/lowwall3.ase",
 					 "models/highwall1.ase","models/factory.ase","models/fence.asc",
 					 "models/flag.asc","models/highwall2.ase","models/warbase.ase"};
-	char *pnames[11]={"models/h-bipod.ase","models/h-tracks.ase","models/h-antigrav.ase",
+	const char *pnames[11]={"models/h-bipod.ase","models/h-tracks.ase","models/h-antigrav.ase",
 					 "models/h-cannon.ase","models/h-missiles.ase","models/h-phasers.ase",
 					 "models/h-nuclear.ase","models/h-electronics.ase",
 					 "models/h-bipod-base.ase","models/h-bipod-rleg.ase","models/h-bipod-lleg.ase"};
-	char *pnames2[11]={"models/e-bipod.ase","models/e-tracks.ase","models/e-antigrav.ase",
+	const char *pnames2[11]={"models/e-bipod.ase","models/e-tracks.ase","models/e-antigrav.ase",
 					  "models/e-cannon.ase","models/e-missiles.ase","models/e-phasers.ase",
 					  "models/nuclear.asc","models/e-electronics.ase",
 					  "models/e-bipod-base.ase","models/e-bipod-rleg.ase","models/e-bipod-lleg.ase"};
-	char *bullnames[3]={"models/bullet1.asc","models/bullet2.asc","models/bullet3.asc"};
+	const char *bullnames[3]={"models/bullet1.asc","models/bullet2.asc","models/bullet3.asc"};
 	float pscale[11]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.45,0.375,0.375};
 	float bscale[9]={0.5,0.5,0.5,
 					 0.5,0.5,1.0,

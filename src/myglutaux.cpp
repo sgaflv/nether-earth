@@ -44,7 +44,7 @@ C3DObject *characters[256]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 int TEXTURE_APPROXIMATION=GL_LINEAR;
 
 
-float draw3Dtext(char *text,float dx,float dy,float dz,float r,float g,float b)
+float draw3Dtext(const char *text,float dx,float dy,float dz,float r,float g,float b)
 {
 	int i;
 	int len=strlen(text);
@@ -177,7 +177,7 @@ void glutSolidBox(float dx,float dy,float dz)
 } /* glutSolidBox */ 
 
 
-void glutPrint(char *str)
+void glutPrint(const char *str)
 {
 	int i;
 
@@ -186,7 +186,7 @@ void glutPrint(char *str)
 } /* glutPrint */ 
 
 
-void glutPrintxy(float x,float y,char *str)
+void glutPrintxy(float x,float y,const char *str)
 {
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -487,7 +487,7 @@ bool gauss_solve_d(double *m,double *ctnt,double *s,int neq)
 //			fprintf(fp,"|  %.6f\n",float(ctnt[a]));
 //		} /* for */ 
 
-		/* Buscar una ecuación con coeficiente de la variable i diferente de 0: */ 
+		/* Buscar una ecuaciï¿½n con coeficiente de la variable i diferente de 0: */ 
 		for(j=0,found=false,tmp=0;j<neq;j++) {
 			if (fabs(m[i+j*neq])>tmp) {
 				found=true;
@@ -574,7 +574,7 @@ double distancia_a_recta(Vector p,Vector pr,Vector vr)
 	/* Buscamos el plano que tiene como vector normal 'vr' y pasa por 'p': */ 
 	/* x*vr.x + y*vr.y + z*vr.z - (p*vr) = 0 */ 
 
-	/* Buscamos el punto de colisión entre la recta y el plano anterior: */ 
+	/* Buscamos el punto de colisiï¿½n entre la recta y el plano anterior: */ 
 	Vector col_point;
 	double lambda;
 	double tmp1,tmp2;
@@ -625,7 +625,7 @@ bool LineLineCollision(float p0[3],float v0[3],float p1[3],float v1[3],float *l1
 } /* LineLineCollision */ 
 
 
-unsigned int createTexture(char *fname)
+unsigned int createTexture(const char *fname)
 {
 	unsigned int tname=0;
 	int i,j,k,val;
@@ -667,7 +667,7 @@ unsigned int createTexture(char *fname)
 } /* createTexture */ 
 
 
-unsigned int createTexture(char *fname,int x,int y,int sz)
+unsigned int createTexture(const char *fname,int x,int y,int sz)
 {
 	unsigned int tname=0;
 	int i,j,k,val;

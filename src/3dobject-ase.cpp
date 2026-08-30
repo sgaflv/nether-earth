@@ -20,15 +20,15 @@
 extern void Normal (double vector1[3],double vector2[3],double resultado[3]);
 
 
-bool lookfor(char *tag,FILE *fp);
-int  lookfor2(char *tag,char *tag2,FILE *fp);
-bool lookforinside(char *tag,FILE *fp);
+bool lookfor(const char *tag,FILE *fp);
+int  lookfor2(const char *tag,const char *tag2,FILE *fp);
+bool lookforinside(const char *tag,FILE *fp);
 bool nexttag(char *tag,FILE *fp);
 bool nexttaginside(char *tag,FILE *fp);
 bool skipinfo(FILE *fp);
 bool readcomment(char *data,FILE *fp);
 
-bool C3DObject::loadASE(char *file,char *texturedir)
+bool C3DObject::loadASE(const char *file,const char *texturedir)
 {
 	int i=0,j=0;
 	int *smooth=0;
@@ -428,7 +428,7 @@ bool skipinfo(FILE *fp,int parentheses)
 } /* skipinfo */ 
 
 
-bool lookfor(char *tag,FILE *fp)
+bool lookfor(const char *tag,FILE *fp)
 {
 	char tagname[256];
 
@@ -442,7 +442,7 @@ bool lookfor(char *tag,FILE *fp)
 } /* lookfor */ 
 
 
-int lookfor2(char *tag,char *tag2,FILE *fp)
+int lookfor2(const char *tag,const char *tag2,FILE *fp)
 {
 	char tagname[256];
 
@@ -458,7 +458,7 @@ int lookfor2(char *tag,char *tag2,FILE *fp)
 
 
 
-bool lookforinside(char *tag,FILE *fp)
+bool lookforinside(const char *tag,FILE *fp)
 {
 	char tagname[256];
 

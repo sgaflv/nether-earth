@@ -2,7 +2,7 @@
 
 #include "bitmap.h"
 
-Bitmap::Bitmap(char *file)
+Bitmap::Bitmap(const char *file)
 {
 	FILE *fp;
 	int i,j;
