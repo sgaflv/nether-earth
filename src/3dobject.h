@@ -4,7 +4,7 @@
 class C3DObject {
 public:
 	C3DObject();
-	C3DObject(const char *file,const char *texturedir);					/* Contruir a partir de un fichero		*/ 
+	C3DObject(const char *file,const char *texturedir);					/* Build from a file		*/ 
 	~C3DObject();
 
 	void refresh_display_lists(void);
@@ -38,7 +38,7 @@ public:
 	float *normales;
 	int *caras;
 
-	float *r,*g,*b;	/* Color de las caras: */ 
+	float *r,*g,*b;	/* Color of the faces: */ 
 
 	int display_list;
 

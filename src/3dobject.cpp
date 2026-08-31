@@ -78,7 +78,7 @@ bool C3DObject::loadASC(const char *file)
 	fp=fopen(file,"r+");
 	if (fp==NULL) return false;
 
-	/* Importar un fichero .ASC de 3DStudio */ 
+	/* Import a 3DStudio .ASC file */ 
 	end=false;
 	state=ST_INIT; 
 	do{
@@ -344,7 +344,7 @@ void C3DObject::moveobject(float x,float y,float z)
 void C3DObject::CalculaNormales(int *smooth)
 {
 
-	/* Calcular las normales a las caras: */ 
+	/* Calculate the face normals: */ 
 	int i,j,k,act_vertex;
 	float *normales_tmp;
 	double vector1[3],vector2[3],normal[3];
@@ -366,7 +366,7 @@ void C3DObject::CalculaNormales(int *smooth)
 		normales_tmp[i*3+2]=float(normal[2]);
 	} /* for */ 
 
-	/* Calcular las normales a cada v�rtice seg�n sus grupos "smooth": */ 
+	/* Calculate the normal of each vertex according to its "smooth" groups: */ 
 	for(i=0;i<ncaras;i++) {
 		for(j=0;j<3;j++) {
 			act_vertex=caras[i*3+j];
@@ -437,7 +437,7 @@ void C3DObject::draw(void)
 		if (display_list==-1) {
 			display_list=glGenLists(1);
 			glNewList(display_list,GL_COMPILE);
-			/* Dibuja el objeto: */ 
+			/* Draw the object: */ 
 			{
 				glEnable(GL_TEXTURE_2D);
 				glEnableClientState(GL_VERTEX_ARRAY);
@@ -474,7 +474,7 @@ void C3DObject::draw(void)
 		if (display_list==-1) {
 			display_list=glGenLists(1);
 			glNewList(display_list,GL_COMPILE);
-			/* Dibuja el objeto: */ 
+			/* Draw the object: */ 
 			{
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(3,GL_FLOAT,0,puntos);
@@ -510,7 +510,7 @@ void C3DObject::draw(float r,float g,float b)
 		if (display_list==-1) {
 			display_list=glGenLists(1);
 			glNewList(display_list,GL_COMPILE);
-			/* Dibuja el objeto: */ 
+			/* Draw the object: */ 
 			{
 				glEnable(GL_TEXTURE_2D);
 				glEnableClientState(GL_VERTEX_ARRAY);
@@ -546,9 +546,9 @@ void C3DObject::draw(float r,float g,float b)
 //		if (display_list==-1) {
 //			display_list=glGenLists(1);
 //			glNewList(display_list,GL_COMPILE_AND_EXECUTE);
-			/* Dibuja el objeto: */ 
+			/* Draw the object: */ 
 			{
-				/* Dibuja el objeto: */ 
+				/* Draw the object: */ 
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(3,GL_FLOAT,0,puntos);
 				glColor3f(r,g,b);
@@ -576,7 +576,7 @@ void C3DObject::draw_notexture(float r,float g,float b)
 {
 	int i,off1;
 
-	/* Dibuja el objeto: */ 
+	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3,GL_FLOAT,0,puntos);
 	glColor3f(r,g,b);
@@ -598,7 +598,7 @@ void C3DObject::draw_notexture(float r,float g,float b,float a)
 {
 	int i,off1;
 
-	/* Dibuja el objeto: */ 
+	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3,GL_FLOAT,0,puntos);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);

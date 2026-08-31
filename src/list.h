@@ -2,7 +2,7 @@
 #define GENERIC_LIST
 
 /* 
-Funciones para LISTAS: 
+Functions for LISTS: 
 
 	void Delete()
 	void Instance(List<T> &l)
@@ -270,14 +270,14 @@ public:
 
 		if (tmp1!=NULL) {
 			if (tmp2==NULL) {
-				/* Eliminar el primer elemento de la lista: */ 
+				/* Remove the first element of the list: */ 
 				list=list->Getnext();
 				tmp1->Setnext(NULL);
 				if (act==tmp1) act=list;
 				tmp1->Setobj(NULL);
 				delete tmp1;
 			} else {
-				/* Eliminar un elemento intermedio: */ 
+				/* Remove an intermediate element: */ 
 				tmp2->Setnext(tmp1->Getnext());
 				if (act==tmp1) act=tmp1->Getnext();
 				if (top==tmp1) top=tmp2;

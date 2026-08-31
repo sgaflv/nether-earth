@@ -93,7 +93,7 @@ void Piece3DObject::DrawShadow(int angle,Vector light,float r,float g,float b,fl
 {
 	int i;
 
-	/* Dibuja el objeto: */ 
+	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glColor4f(r,g,b,a);
 	glNormal3f(0,1,0);
@@ -183,7 +183,7 @@ void Piece3DObject::ComputeShadow(int angle,Vector light,int *np,int *nc,float *
 	plane[3]=0;
 
 
-	/* Rotar la luz: */ 
+	/* Rotate the light: */ 
 	{
 		float lv[4]={float(light.x),float(light.y),float(light.z),1};
 		float axis[4]={0,0,1,1};
@@ -201,7 +201,7 @@ void Piece3DObject::ComputeShadow(int angle,Vector light,int *np,int *nc,float *
 
 	pry_npuntos=npuntos;
 	pry_puntos=new float[npuntos*3];
-	/* Proyectar TODOS los tri�ngulos sobre el plano Z: */ 
+	/* Project ALL the triangles onto the Z plane: */ 
 	{
 		float p[3],tmp[3];
 
@@ -217,12 +217,12 @@ void Piece3DObject::ComputeShadow(int angle,Vector light,int *np,int *nc,float *
 		} /* for */ 
 	}
 
-	/* Crear los tri�ngulos proyectadas: */ 
+	/* Create the projected triangles: */ 
 	shdw_ncaras=0;
 	pry_ncaras=ncaras;
 	pry_caras=new int[ncaras*3];
 	for(i=0;i<ncaras;i++) {
-		/* Comprobar que el tri�ngulo es visible: */ 
+		/* Check that the triangle is visible: */ 
 
 		v[0]=puntos[caras[i*3+1]*3]-puntos[caras[i*3]*3];;
 		v[1]=puntos[caras[i*3+1]*3+1]-puntos[caras[i*3]*3+1];
@@ -242,10 +242,10 @@ void Piece3DObject::ComputeShadow(int angle,Vector light,int *np,int *nc,float *
 	} /* for */ 
 
 
-	/* Unir los tri�ngulos proyectados: */ 
+	/* Join the projected triangles: */ 
 	/* ... */ 
 
-	/* Copiarlos a las variables del objeto: */ 
+	/* Copy them into the object's variables: */ 
 	delete *p;
 	delete *c;
 	*p=0;

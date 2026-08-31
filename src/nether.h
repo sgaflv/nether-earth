@@ -393,7 +393,7 @@ private:
 	AI_OPERATOR **searchmap;
 	int *atackmap;
 
-	/* Sonido: */ 
+	/* Sound: */ 
 	Mix_Chunk *S_shot,*S_explosion,*S_select,*S_wrong,*S_construction;
 	
 

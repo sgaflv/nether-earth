@@ -1,5 +1,5 @@
 NETHER EARTH REMAKE v0.41
-Santi Ontañón Villar (2002)
+Santi OntaÃ±Ã³n Villar (2002)
 
 This is a remake of the original Nether Earth for the Spectrum. You will need an OpenGL
 accelerator card in order to play it.

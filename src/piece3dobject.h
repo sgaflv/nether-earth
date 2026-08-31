@@ -4,7 +4,7 @@
 class Piece3DObject : public C3DObject {
 public:
 	Piece3DObject();
-	Piece3DObject(const char *file,const char *texturedir);						/* Contruir a partir de un fichero		*/ 
+	Piece3DObject(const char *file,const char *texturedir);						/* Build from a file		*/ 
 	~Piece3DObject();
 
 	void DrawShadow(int angle,Vector light,float r,float g,float b,float a);

@@ -44,7 +44,7 @@ void Shadow3DObject::DrawShadow(float r,float g,float b,float a)
 {
 	int i;
 
-	/* Dibuja el objeto: */ 
+	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3,GL_FLOAT,0,shdw_puntos);
 	glColor4f(r,g,b,a);
@@ -89,7 +89,7 @@ void Shadow3DObject::ComputeShadow(Vector light)
 
 	pry_npuntos=npuntos;
 	pry_puntos=new float[npuntos*3];
-	/* Proyectar TODOS los tri�ngulos sobre el plano Z: */ 
+	/* Project ALL the triangles onto the Z plane: */ 
 	for(i=0;i<npuntos;i++) {
 		p[0]=puntos[i*3];
 		p[1]=puntos[i*3+1];
@@ -102,12 +102,12 @@ void Shadow3DObject::ComputeShadow(Vector light)
 		pry_puntos[i*3+2]=0;
 	} /* for */ 
 
-	/* Crear los tri�ngulos proyectadas: */ 
+	/* Create the projected triangles: */ 
 	shdw_ncaras=0;
 	pry_ncaras=ncaras;
 	pry_caras=new int[ncaras*3];
 	for(i=0;i<ncaras;i++) {
-		/* Comprobar que el tri�ngulo es visible: */ 
+		/* Check that the triangle is visible: */ 
 
 		v[0]=puntos[caras[i*3+1]*3]-puntos[caras[i*3]*3];;
 		v[1]=puntos[caras[i*3+1]*3+1]-puntos[caras[i*3]*3+1];
@@ -127,10 +127,10 @@ void Shadow3DObject::ComputeShadow(Vector light)
 	} /* for */ 
 
 
-	/* Unir los tri�ngulos proyectados: */ 
+	/* Join the projected triangles: */ 
 	/* ... */ 
 
-	/* Copiarlos a las variables del objeto: */ 
+	/* Copy them into the object's variables: */ 
 	shdw_caras=new int[shdw_ncaras*3];
 	for(i=0;i<shdw_ncaras*3;i++) shdw_caras[i]=pry_caras[i];
 	delete pry_caras;

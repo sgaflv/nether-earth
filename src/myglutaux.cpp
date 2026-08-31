@@ -495,7 +495,7 @@ bool gauss_solve_d(double *m,double *ctnt,double *s,int neq)
 //			fprintf(fp,"|  %.6f\n",float(ctnt[a]));
 //		} /* for */ 
 
-		/* Buscar una ecuaci�n con coeficiente de la variable i diferente de 0: */ 
+		/* Find an equation with a nonzero coefficient for variable i: */ 
 		for(j=0,found=false,tmp=0;j<neq;j++) {
 			if (fabs(m[i+j*neq])>tmp) {
 				found=true;
@@ -511,14 +511,14 @@ bool gauss_solve_d(double *m,double *ctnt,double *s,int neq)
 
 		if (!found) return false;
 
-		/* Colocar un 1: */ 
+		/* Place a 1: */ 
 		c=m[i+order[i]*neq];
 		for(j=0;j<neq;j++) {
 			m[order[i]*neq+j]/=c;
 		} /* for */ 
 		ctnt[order[i]]/=c;
 
-		/* Llenar la columna de ceros: */ 
+		/* Fill the column with zeros: */ 
 		for(j=0;j<neq;j++) {
 			if (j!=order[i]) {
 				c=m[i+j*neq];
@@ -579,10 +579,10 @@ double det_d(double *m,int size)
 
 double distancia_a_recta(Vector p,Vector pr,Vector vr)
 {
-	/* Buscamos el plano que tiene como vector normal 'vr' y pasa por 'p': */ 
+	/* Find the plane whose normal is 'vr' and that passes through 'p': */ 
 	/* x*vr.x + y*vr.y + z*vr.z - (p*vr) = 0 */ 
 
-	/* Buscamos el punto de colisi�n entre la recta y el plano anterior: */ 
+	/* Find the collision point between the line and the previous plane: */ 
 	Vector col_point;
 	double lambda;
 	double tmp1,tmp2;

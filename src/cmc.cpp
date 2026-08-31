@@ -243,7 +243,7 @@ bool CMC::collision(float *m,CMC *o2,float *m2)
 	float b_points[24];
 	CMC *a_cmc,*b_cmc;
 
-	/* Calcular las coordenadas "mundo" de los vértices de las cmcs: */ 
+	/* Calculate the "world" coordinates of the cmcs' vertices: */ 
 	{
 		float v[4],out[4];
 		int i;
@@ -268,7 +268,7 @@ bool CMC::collision(float *m,CMC *o2,float *m2)
 		} /* for */ 
 	}
 
-	/* Hacer una primera precolisión: */ 
+	/* Do a first pre-collision check: */ 
 	a_cmc=new CMC(a_points,8);
 	b_cmc=new CMC(b_points,8);
 	if (!a_cmc->collision(b_cmc)) return false;
@@ -276,8 +276,8 @@ bool CMC::collision(float *m,CMC *o2,float *m2)
 //	a_cmc->drawabsolute(1,1,1);
 //	b_cmc->drawabsolute(1,1,1);
 
-	/* Colisión detallada: */ 
-	/* PARTE 1: Colisión de caras */ 
+	/* Detailed collision: */ 
+	/* PART 1: Face collision */ 
 	{
 		int i,j,k;
 		float plane_a_points[12];
@@ -335,7 +335,7 @@ bool CMC::collision(float *m,CMC *o2,float *m2)
 						wb[2]=b_points[faces[j*4+2]*3+2]-b_points[faces[j*4]*3+2];
 						wb[3]=1;
 
-						/* Colisión entre planos: */ 
+						/* Collision between planes: */ 
 						if (plane_collision(pa,va,wa,pb,vb,wb)) {
 							delete plane_b_cmc;
 							delete plane_a_cmc;
@@ -353,7 +353,7 @@ bool CMC::collision(float *m,CMC *o2,float *m2)
 		} /* for */ 
 	}
 
-	/* PARTE 2: Test de inclusión */ 
+	/* PART 2: Inclusion test */ 
 	{
 		/* A in B: */ 
 		if (point_inside_cmc(a_points,b_points)) return true;
@@ -375,7 +375,7 @@ bool CMC::collision_simple(float *m,CMC *o2,float *m2)
 	float b_points[24];
 	CMC *a_cmc,*b_cmc;
 
-	/* Calcular las coordenadas "mundo" de los vértices de las cmcs: */ 
+	/* Calculate the "world" coordinates of the cmcs' vertices: */ 
 	{
 		float v[4],out[4];
 		int i;
@@ -400,7 +400,7 @@ bool CMC::collision_simple(float *m,CMC *o2,float *m2)
 		} /* for */ 
 	}
 
-	/* Hacer una primera precolisión: */ 
+	/* Do a first pre-collision check: */ 
 	a_cmc=new CMC(a_points,8);
 	b_cmc=new CMC(b_points,8);
 	if (!a_cmc->collision(b_cmc)) return false;
@@ -444,8 +444,8 @@ bool point_inside_cmc(float *cmc_p,float *p)
 		w[2]=cmc_p[faces[i*4+2]*3+2]-cmc_p[faces[i*4]*3+2];
 		w[3]=1;
 
-		/* Calcular las ecuaciónes de los planos: */ 
-		/* Coeficientes A,B,C: */ 
+		/* Calculate the equations of the planes: */ 
+		/* Coefficients A,B,C: */ 
 		paeq[0]=pbeq[0]=v[1]*w[2]-w[1]*v[2];
 		paeq[1]=pbeq[1]=v[2]*w[0]-w[2]*v[0];
 		paeq[2]=pbeq[2]=v[0]*w[1]-w[0]*v[1];
@@ -469,7 +469,7 @@ bool plane_collision(float *pa,float *va,float *wa,float *pb,float *vb,float *wb
 	int lambda;
 	float range_a[2],range_b[2];
 
-	/* Determinar cual de las 4 lambdas será el parámetro l[par]: */ 
+	/* Determine which of the 4 lambdas is the parameter l[par]: */ 
 	/* lambda = l4 */ 
 	m[0]=va[0];	m[1]=wa[0];	m[2]=-vb[0];
 	m[3]=va[1];	m[4]=wa[1];	m[5]=-vb[1];
@@ -512,15 +512,15 @@ bool plane_collision(float *pa,float *va,float *wa,float *pb,float *vb,float *wb
 	} /* if */ 
 
 	if (det==0) {
-		/* Los planos están alineados: */ 
+		/* The planes are aligned: */ 
 
-		/* Substituir todos los puntos de un plano en el otro y viceversa, y ver si alguno pertenece: */ 
+		/* Substitute all the points of one plane into the other and vice versa, and check whether any belongs: */ 
 		/* ... */ 
 
 		return false;
 	} /* if */ 
 
-	/* Buscar la ecuación de la recta intersección de los 2 planos: */ 
+	/* Find the equation of the line of intersection of the 2 planes: */ 
 	float ct[3];
 	float lambdas[3];
 	float r_p[3],r_p2[3],r_v[3];
@@ -584,7 +584,7 @@ bool plane_collision(float *pa,float *va,float *wa,float *pb,float *vb,float *wb
 	r_v[1]=r_p2[1]-r_p[1];
 	r_v[2]=r_p2[2]-r_p[2];
 
-	/* Buscar el rango de l[par] que cae dentro de a: */ 
+	/* Find the range of l[par] that falls inside a: */ 
 	{
 		float tmp;
 		float cutpoint;
@@ -650,7 +650,7 @@ bool plane_collision(float *pa,float *va,float *wa,float *pb,float *vb,float *wb
 	}
 	if (range_a[0]>=range_a[1]) return false;
 
-	/* Buscar el rango de l[par] que cae dentro de b: */ 
+	/* Find the range of l[par] that falls inside b: */ 
 	{
 		float tmp;
 		float cutpoint;
@@ -714,7 +714,7 @@ bool plane_collision(float *pa,float *va,float *wa,float *pb,float *vb,float *wb
 		} /* if */ 	}
 	if (range_b[0]>=range_b[1]) return false;
 
-	/* Si se solapan los rangos hay colisión: */ 
+	/* If the ranges overlap there is a collision: */ 
 	if (range_a[0]<range_b[1] &&
 		range_b[0]<range_a[1]) return true;
 	
