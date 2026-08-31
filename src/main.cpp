@@ -41,6 +41,7 @@ int up_key=SDL_SCANCODE_Q,down_key=SDL_SCANCODE_A,left_key=SDL_SCANCODE_O,right_
 int level=1;
 int mainmenu_status=0;
 int mainmenu_substatus=0;
+int mainmenu_selection=0;
 bool fullscreen=false;
 bool show_radar=true;
 char mapname[128]="original.map";
@@ -392,8 +393,9 @@ int main(int argc, char** argv)
 					if (!game->gamecycle(w,h)) {
 						delete game;
 						game=0;
-						mainmenu_status=0;
-						mainmenu_substatus=0;
+					mainmenu_status=0;
+					mainmenu_substatus=0;
+					mainmenu_selection=0;
 					} /* if */  
 				} else {
 					int val=mainmenu_cycle(w,h);

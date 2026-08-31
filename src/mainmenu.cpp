@@ -58,6 +58,7 @@ List<char> mapnames;
 
 extern int mainmenu_status;
 extern int mainmenu_substatus;
+extern int mainmenu_selection;
 extern C3DObject *nethertittle;
 unsigned char old_keyboard[SDL_NUM_SCANCODES];
 
@@ -85,8 +86,94 @@ int mainmenu_cycle(int width,int height)
 		break;
 	case 1:
 		mainmenu_substatus++;
-		if ((keyboard[fire_key] && !old_keyboard[fire_key]) ||
-			(keyboard[SDL_SCANCODE_1] && !old_keyboard[SDL_SCANCODE_1])) {
+		if (keyboard[down_key] && !old_keyboard[down_key]) {
+			mainmenu_selection++;
+			if (mainmenu_selection>=5) mainmenu_selection=0;
+		} /* if */ 
+		if (keyboard[up_key] && !old_keyboard[up_key]) {
+			mainmenu_selection--;
+			if (mainmenu_selection<0) mainmenu_selection=4;
+		} /* if */ 
+		if (keyboard[fire_key] && !old_keyboard[fire_key]) {
+			switch(mainmenu_selection) {
+			case 0:mainmenu_status=4;
+				   mainmenu_substatus=0;
+				   break;
+			case 1:mainmenu_status=6;
+				   mainmenu_substatus=0;
+				   break;
+			case 2:mainmenu_status=2;
+				   mainmenu_substatus=0;
+				   break;
+			case 3:/* Change the MAP: */ 
+				   if (mapnames.EmptyP()) {
+					   /* Fill the mapnames list: */ 
+#ifdef _WIN32
+					   WIN32_FIND_DATA finfo;
+					   HANDLE h;
+
+					   h=FindFirstFile("maps/*.map",&finfo);
+					   if (h!=INVALID_HANDLE_VALUE) {
+						   if (strcmp(finfo.cFileName,".")!=0 &&
+							   strcmp(finfo.cFileName,"..")!=0) {
+							   char *name;
+							   name=new char[strlen(finfo.cFileName)+1];
+							   strcpy(name,finfo.cFileName);
+							   mapnames.Add(name);
+						   } /* if */ 
+
+						   while(FindNextFile(h,&finfo)==TRUE) {
+
+							   if (strcmp(finfo.cFileName,".")!=0 &&
+								   strcmp(finfo.cFileName,"..")!=0) {
+								   char *name;
+								   name=new char[strlen(finfo.cFileName)+1];
+								   strcpy(name,finfo.cFileName);
+								   mapnames.Add(name);
+							   } /* if */ 
+						   } /* while */ 
+					   } /* if */ 
+				
+#else
+					   DIR *dp;
+					   struct dirent *ep;
+				  
+					   dp = opendir ("./maps/");
+					   if (dp != NULL)
+					   {
+						   while (ep = readdir (dp))
+						   {
+							   if ((strstr(ep->d_name,".map") + 4) == ep->d_name + strlen(ep->d_name))
+							   {
+								   char *name;
+								   name=new char[strlen(ep->d_name)+1];
+								   strcpy(name,ep->d_name);
+								   mapnames.Add(name);
+							   }
+						   }
+						   (void) closedir (dp);
+					   }
+#endif
+					   /* Look for the actualmap: */ 
+					   mapnames.Rewind();
+					   while(!mapnames.EndP() && strcmp(mapnames.GetObj(),mapname)!=0) mapnames.Next();
+
+				   } /* if */ 
+
+				   if (!mapnames.EmptyP()) {
+					   mapnames.Next();
+					   if (mapnames.EndP()) mapnames.Rewind();
+					   strcpy(mapname,mapnames.GetObj());
+				   } /* if */ 
+
+				   save_configuration();
+				   break;
+			case 4:mainmenu_status=5;
+				   mainmenu_substatus=0;
+				   break;
+			} /* switch */ 
+		} /* if */ 
+		if (keyboard[SDL_SCANCODE_1] && !old_keyboard[SDL_SCANCODE_1]) {
 			mainmenu_status=4;
 			mainmenu_substatus=0;
 		} /* if */ 
@@ -365,16 +452,26 @@ void mainmenu_draw(int width,int height)
 		nethertittle->draw(1.0,1.0,1.0);
 		glPopMatrix();
 		glColor3f(0.5,0.5,1.0);
-		glTranslatef(-6,-6,0);
-		scaledglprintf2(0.005,0.005,"1 - START NEW GAME   ");
+		glTranslatef(0,-6,0);
+		if (mainmenu_selection==0) glColor3f(1.0,0.0,0.0);
+						     else glColor3f(0.5,0.5,1.0);
+		scaledglprintf(0.005,0.005,"1 - START NEW GAME   ");
 		glTranslatef(0,-1,0);
-		scaledglprintf2(0.005,0.005,"2 - REDEFINE KEYBOARD");
+		if (mainmenu_selection==1) glColor3f(1.0,0.0,0.0);
+						     else glColor3f(0.5,0.5,1.0);
+		scaledglprintf(0.005,0.005,"2 - REDEFINE KEYBOARD");
 		glTranslatef(0,-1,0);
-		scaledglprintf2(0.005,0.005,"3 - OPTIONS          ");
+		if (mainmenu_selection==2) glColor3f(1.0,0.0,0.0);
+						     else glColor3f(0.5,0.5,1.0);
+		scaledglprintf(0.005,0.005,"3 - OPTIONS          ");
 		glTranslatef(0,-1,0);
-		scaledglprintf2(0.005,0.005,"4 - MAP: %s",mapname);
+		if (mainmenu_selection==3) glColor3f(1.0,0.0,0.0);
+						     else glColor3f(0.5,0.5,1.0);
+		scaledglprintf(0.005,0.005,"4 - MAP: %s",mapname);
 		glTranslatef(0,-1,0);
-		scaledglprintf2(0.005,0.005,"5 - EXIT GAME        ");
+		if (mainmenu_selection==4) glColor3f(1.0,0.0,0.0);
+						     else glColor3f(0.5,0.5,1.0);
+		scaledglprintf(0.005,0.005,"5 - EXIT GAME        ");
 		break;
 	case 2:
 	case 4:
