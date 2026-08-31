@@ -61,7 +61,7 @@ float draw3Dtext(const char *text,float dx,float dy,float dz,float r,float g,flo
 			filename[3]='s';
 			filename[4]='c';
 			filename[5]=0;
-			characters[text[i]]=new C3DObject(filename,"textures/");
+			characters[text[i]]=new C3DObject(filename,"assets/textures/");
 			characters[text[i]]->normalize();
 		} /* if */ 
 		if (characters[text[i]]!=NULL) {

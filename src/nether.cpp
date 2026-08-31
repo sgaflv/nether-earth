@@ -170,11 +170,11 @@ NETHER::NETHER(const char *mapname)
 #endif
 
 	/* Load sounds: */ 
-	S_shot=Mix_LoadWAV("sound/shot.wav");
-	S_explosion=Mix_LoadWAV("sound/explosion.wav");
-	S_select=Mix_LoadWAV("sound/select.wav");
-	S_wrong=Mix_LoadWAV("sound/wrong.wav");
-	S_construction=Mix_LoadWAV("sound/construction.wav");
+	S_shot=Mix_LoadWAV("assets/sound/shot.wav");
+	S_explosion=Mix_LoadWAV("assets/sound/explosion.wav");
+	S_select=Mix_LoadWAV("assets/sound/select.wav");
+	S_wrong=Mix_LoadWAV("assets/sound/wrong.wav");
+	S_construction=Mix_LoadWAV("assets/sound/construction.wav");
 
 #ifdef _WRITE_REPORT_
 	fprintf(debug_fp,"Game created.\n");
@@ -243,22 +243,22 @@ NETHER::~NETHER()
 void NETHER::loadobjects(void)
 {
 	/* Load 3D objects: */ 
-	const char *tnames[12]={"models/grass1.ase","models/rough.ase","models/rocks.ase","models/heavyrocks.ase",
-					  "models/hole1.asc","models/hole2.asc","models/hole3.asc",
-					  "models/hole4.asc","models/hole5.asc","models/hole6.asc",
-					  "models/grass2.ase","models/grass3.ase"};
-	const char *bnames[9]={"models/lowwall1.ase","models/lowwall2.ase","models/lowwall3.ase",
-					 "models/highwall1.ase","models/factory.ase","models/fence.asc",
-					 "models/flag.asc","models/highwall2.ase","models/warbase.ase"};
-	const char *pnames[11]={"models/h-bipod.ase","models/h-tracks.ase","models/h-antigrav.ase",
-					 "models/h-cannon.ase","models/h-missiles.ase","models/h-phasers.ase",
-					 "models/h-nuclear.ase","models/h-electronics.ase",
-					 "models/h-bipod-base.ase","models/h-bipod-rleg.ase","models/h-bipod-lleg.ase"};
-	const char *pnames2[11]={"models/e-bipod.ase","models/e-tracks.ase","models/e-antigrav.ase",
-					  "models/e-cannon.ase","models/e-missiles.ase","models/e-phasers.ase",
-					  "models/nuclear.asc","models/e-electronics.ase",
-					  "models/e-bipod-base.ase","models/e-bipod-rleg.ase","models/e-bipod-lleg.ase"};
-	const char *bullnames[3]={"models/bullet1.asc","models/bullet2.asc","models/bullet3.asc"};
+	const char *tnames[12]={"assets/models/grass1.ase","assets/models/rough.ase","assets/models/rocks.ase","assets/models/heavyrocks.ase",
+					  "assets/models/hole1.asc","assets/models/hole2.asc","assets/models/hole3.asc",
+					  "assets/models/hole4.asc","assets/models/hole5.asc","assets/models/hole6.asc",
+					  "assets/models/grass2.ase","assets/models/grass3.ase"};
+	const char *bnames[9]={"assets/models/lowwall1.ase","assets/models/lowwall2.ase","assets/models/lowwall3.ase",
+					 "assets/models/highwall1.ase","assets/models/factory.ase","assets/models/fence.asc",
+					 "assets/models/flag.asc","assets/models/highwall2.ase","assets/models/warbase.ase"};
+	const char *pnames[11]={"assets/models/h-bipod.ase","assets/models/h-tracks.ase","assets/models/h-antigrav.ase",
+					 "assets/models/h-cannon.ase","assets/models/h-missiles.ase","assets/models/h-phasers.ase",
+					 "assets/models/h-nuclear.ase","assets/models/h-electronics.ase",
+					 "assets/models/h-bipod-base.ase","assets/models/h-bipod-rleg.ase","assets/models/h-bipod-lleg.ase"};
+	const char *pnames2[11]={"assets/models/e-bipod.ase","assets/models/e-tracks.ase","assets/models/e-antigrav.ase",
+					  "assets/models/e-cannon.ase","assets/models/e-missiles.ase","assets/models/e-phasers.ase",
+					  "assets/models/nuclear.asc","assets/models/e-electronics.ase",
+					  "assets/models/e-bipod-base.ase","assets/models/e-bipod-rleg.ase","assets/models/e-bipod-lleg.ase"};
+	const char *bullnames[3]={"assets/models/bullet1.asc","assets/models/bullet2.asc","assets/models/bullet3.asc"};
 	float pscale[11]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.45,0.375,0.375};
 	float bscale[9]={0.5,0.5,0.5,
 					 0.5,0.5,1.0,
@@ -276,7 +276,7 @@ void NETHER::loadobjects(void)
 	tile_g=new float[n_objs];
 	tile_b=new float[n_objs];
 	for(i=0;i<n_objs;i++) {
-		tile[i]=new C3DObject(tnames[i],"textures/");
+		tile[i]=new C3DObject(tnames[i],"assets/textures/");
 		tile[i]->normalize(0.50f);
 		tile[i]->makepositive();
 		tile_r[i]=r[i];
@@ -294,7 +294,7 @@ void NETHER::loadobjects(void)
 	n_buildings=9;
 	building_tile=new Shadow3DObject *[n_buildings];
 	for(i=0;i<n_buildings;i++) {
-		building_tile[i]=new Shadow3DObject(bnames[i],"textures/");
+		building_tile[i]=new Shadow3DObject(bnames[i],"assets/textures/");
 		building_tile[i]->normalize(bscale[i]);
 		building_tile[i]->makepositive();
 	} /* for */ 
@@ -305,10 +305,10 @@ void NETHER::loadobjects(void)
 	piece_tile[0]=new Piece3DObject *[n_pieces];
 	piece_tile[1]=new Piece3DObject *[n_pieces];
 	for(i=0;i<n_pieces;i++) {
-		piece_tile[0][i]=new Piece3DObject(pnames[i],"textures/");
+		piece_tile[0][i]=new Piece3DObject(pnames[i],"assets/textures/");
 		piece_tile[0][i]->normalize(pscale[i]);
 		piece_tile[0][i]->makepositive();
-		piece_tile[1][i]=new Piece3DObject(pnames2[i],"textures/");
+		piece_tile[1][i]=new Piece3DObject(pnames2[i],"assets/textures/");
 		piece_tile[1][i]->normalize(pscale[i]);
 		piece_tile[1][i]->makepositive();
 	} /* for */ 
@@ -336,14 +336,14 @@ void NETHER::loadobjects(void)
 	piece_tile[1][9]->moveobject(-0.4,-0.5,0.0);
 	piece_tile[1][10]->moveobject(-0.4,0.2,0.0);
 
-	ship=new Shadow3DObject("models/ship.asc","textures/");
+	ship=new Shadow3DObject("assets/models/ship.asc","assets/textures/");
 	ship->normalize(0.5f);
 	ship->makepositive();
 
 	n_bullets=3;
 	bullet_tile=new Piece3DObject *[n_bullets];
 	for(i=0;i<n_bullets;i++) {
-		bullet_tile[i]=new Piece3DObject(bullnames[i],"textures/");
+		bullet_tile[i]=new Piece3DObject(bullnames[i],"assets/textures/");
 		bullet_tile[i]->normalize(bullscale[i]);
 	} /* for */ 
 	
@@ -353,16 +353,16 @@ void NETHER::loadobjects(void)
 	for(i=0;i<n_pieces;i++) piece_tile[1][i]->ComputeFixedShadows(lightposv);
 	for(i=0;i<n_bullets;i++) bullet_tile[i]->ComputeFixedShadows(lightposv);
 
-	construction_tile[0]=new C3DObject("models/construction1.asc","textures/");
-	construction_tile[1]=new C3DObject("models/construction2.asc","textures/");
-	construction_tile[2]=new C3DObject("models/construction3.asc","textures/");
+	construction_tile[0]=new C3DObject("assets/models/construction1.asc","assets/textures/");
+	construction_tile[1]=new C3DObject("assets/models/construction2.asc","assets/textures/");
+	construction_tile[2]=new C3DObject("assets/models/construction3.asc","assets/textures/");
 	construction_tile[0]->normalize(10.0);
 	construction_tile[1]->normalize(9.0);
 	construction_tile[2]->normalize(7.0);
 
-	message_tile[0]=new C3DObject("models/go.ase","textures/");
-	message_tile[1]=new C3DObject("models/youwin.ase","textures/");
-	message_tile[2]=new C3DObject("models/gameover.ase","textures/");
+	message_tile[0]=new C3DObject("assets/models/go.ase","assets/textures/");
+	message_tile[1]=new C3DObject("assets/models/youwin.ase","assets/textures/");
+	message_tile[2]=new C3DObject("assets/models/gameover.ase","assets/textures/");
 	message_tile[0]->normalize(4.0);
 	message_tile[1]->normalize(4.0);
 	message_tile[2]->normalize(4.0);

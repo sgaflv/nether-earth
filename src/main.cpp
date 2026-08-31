@@ -401,7 +401,7 @@ int main(int argc, char** argv)
 					int val=mainmenu_cycle(w,h);
 					if (val==1) {
 						char tmp[256];
-						sprintf(tmp,"maps/%s",mapname);
+						sprintf(tmp,"assets/maps/%s",mapname);
 						game=new NETHER(tmp);
 					} /* if */ 
 					if (val==2) quit=true;

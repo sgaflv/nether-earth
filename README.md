@@ -41,8 +41,9 @@ The binary is `nether_earth`. Rebuild from scratch with `make clean && make`.
 
 ## Running
 
-The game reads its config, maps, models, textures and sounds from the current
-working directory, so run it from the source directory:
+The game reads its config from the current working directory and its maps,
+models, textures and sounds from the `assets/` directory, so run it from the
+source directory:
 
 ```bash
 ./nether_earth
