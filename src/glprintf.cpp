@@ -20,43 +20,33 @@ static void draw_char(float x, float y, unsigned char c)
 	const short *g;
 	int first_x, first_y;
 	bool have_point=false;
-	bool pen_down=false;
 
 	if (c>=128) return;
 	g=glyph_table[c];
 	if (g==0) return;
 
-	have_point=false;
-	pen_down=false;
-	first_x=first_y=0;
-
-	/* Iterate over polylines: */ 
-	while (*g!=END_GLYPH) {
+	/* Iterate over strokes: */
+	while (*g!=END_GLYPH_VAL) {
 		int cx,cy;
 		cx=g[0]; cy=g[1];
-		if (cx==PEN_UP && cy==PEN_UP) {
-			/* Start a new stroke (pen up): */ 
-			have_point=false;
-			pen_down=false;
+		if (cx==PEN_UP_VAL && cy==PEN_UP_VAL) {
+			/* Start a new stroke (pen up): move to the next point. */
 			g+=2;
-			continue;
-		}
-		if (!have_point) {
-			first_x=cx; first_y=cy;
+			first_x=g[0]; first_y=g[1];
 			have_point=true;
-			pen_down=true;
 			g+=2;
 			continue;
 		}
-		glBegin(GL_LINES);
-		glVertex2f(x+first_x, y+first_y);
-		glVertex2f(x+cx, y+cy);
-		glEnd();
+		if (have_point) {
+			glBegin(GL_LINES);
+			glVertex2f(x+first_x, y+first_y);
+			glVertex2f(x+cx, y+cy);
+			glEnd();
+		}
 		first_x=cx; first_y=cy;
-		pen_down=true;
+		have_point=true;
 		g+=2;
 	}
-	(void)pen_down;
 }
 
 /* ------------------------------------------------------------------ */

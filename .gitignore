@@ -1,5 +1,6 @@
 # Build artifacts
 *.o
+*.d
 nether_earth
 
 # Runtime-generated user config

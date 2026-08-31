@@ -27,8 +27,12 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) $(OBJECTS) -o $(TARGET) $(LIBRARIES)
 
+DEPFILES = $(OBJECTS:.o=.d)
+
 $(SRCDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) $(SDL2_CFLAGS) -I$(SRCDIR) -c $< -o $@
+	$(CXX) $(SDL2_CFLAGS) -I$(SRCDIR) -MMD -MP -c $< -o $@
+
+-include $(DEPFILES)
 
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(OBJECTS) $(DEPFILES) $(TARGET)
