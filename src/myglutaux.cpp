@@ -2,13 +2,8 @@
 #include "windows.h"
 #endif
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <GLUT/glut.h>
-#else
-#include "GL/gl.h"
-#include "GL/glut.h"
-#endif
+#include "glport.h"
+
 
 #include "stdio.h"
 #include "string.h"
@@ -177,32 +172,45 @@ void glutSolidBox(float dx,float dy,float dz)
 } /* glutSolidBox */ 
 
 
-void glutPrint(const char *str)
+void glutSolidSphere(float radius,int slices,int stacks)
 {
-	int i;
+	int i,j;
+	float theta1,theta2;
+	float x1,z1,x2,z2;
+	float nx1,nz1,nx2,nz2;
 
-	for(i=0;str[i]!=0;i++)
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,str[i]);
-} /* glutPrint */ 
+	if (radius==0) radius=0.0001f;
+	if (radius<0) radius=-radius;
 
+	if (slices<3) slices=3;
+	if (stacks<2) stacks=2;
 
-void glutPrintxy(float x,float y,const char *str)
-{
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+	for(i=0;i<stacks;i++) {
+		theta1 = float(i)*3.14159265f/float(stacks);
+		theta2 = float(i+1)*3.14159265f/float(stacks);
 
-	glRasterPos2f(x,y);
-	glutPrint(str);
+		glBegin(GL_TRIANGLE_STRIP);
+		for(j=0;j<=slices;j++) {
+			float phi = float(j)*2.0f*3.14159265f/float(slices);
+			float cphi=cosf(phi), sphi=sinf(phi);
+			float ct1=cosf(theta1), st1=sinf(theta1);
+			float ct2=cosf(theta2), st2=sinf(theta2);
 
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-} /* glutPrint */ 
+			x1=radius*st1*cphi;  z1=radius*st1*sphi;
+			x2=radius*st2*cphi;  z2=radius*st2*sphi;
+
+			nx1=st1*cphi; nz1=st1*sphi;
+			nx2=st2*cphi; nz2=st2*sphi;
+
+			glNormal3f(nx1,ct1,nz1);
+			glVertex3f(x1,radius*ct1,z1);
+
+			glNormal3f(nx2,ct2,nz2);
+			glVertex3f(x2,radius*ct2,z2);
+		} /* for */ 
+		glEnd();
+	} /* for */ 
+} /* glutSolidSphere */ 
 
 
 void Normal (double vector1[3],double vector2[3],double resultado[3])

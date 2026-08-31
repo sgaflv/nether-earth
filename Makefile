@@ -9,7 +9,7 @@
 UNAME_S := $(shell uname -s)
 
 SRCDIR = src
-SOURCES = 3dobject-ase.cpp 3dobject.cpp cmc.cpp nether.cpp piece3dobject.cpp vector.cpp bitmap.cpp bullet.cpp glprintf.cpp main.cpp mainmenu.cpp maps.cpp menu.cpp myglutaux.cpp nethercycle.cpp netherdebug.cpp nethersave.cpp particles.cpp construction.cpp quaternion.cpp radar.cpp enemy_ai.cpp robot_ai.cpp robots.cpp shadow3dobject.cpp
+SOURCES = 3dobject-ase.cpp 3dobject.cpp cmc.cpp nether.cpp piece3dobject.cpp vector.cpp bitmap.cpp bullet.cpp glprintf.cpp main.cpp mainmenu.cpp maps.cpp menu.cpp myglutaux.cpp nethercycle.cpp netherdebug.cpp nethersave.cpp particles.cpp construction.cpp quaternion.cpp radar.cpp enemy_ai.cpp robot_ai.cpp robots.cpp shadow3dobject.cpp glport.cpp
 OBJECTS = $(addprefix $(SRCDIR)/,$(SOURCES:.cpp=.o))
 TARGET = nether_earth
 CXX ?= g++
@@ -17,9 +17,9 @@ SDL2_CFLAGS := $(shell pkg-config --cflags sdl2 SDL2_mixer)
 SDL2_LIBS   := $(shell pkg-config --libs sdl2 SDL2_mixer)
 
 ifeq ($(UNAME_S),Darwin)
-  LIBRARIES = -framework Cocoa -framework OpenGL -framework GLUT $(SDL2_LIBS) -lpthread
+  LIBRARIES = -framework Cocoa -framework OpenGL $(SDL2_LIBS) -lpthread
 else
-  LIBRARIES = -lGL -lGLU -lglut $(SDL2_LIBS) -lpthread
+  LIBRARIES = -lGL $(SDL2_LIBS) -lpthread
 endif
 
 all: $(TARGET)

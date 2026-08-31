@@ -8,13 +8,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "SDL.h"
 #include "SDL_mixer.h"
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
+#include "glport.h"
 
 #include "list.h"
 #include "vector.h"
@@ -24,6 +21,9 @@
 #include "shadow3dobject.h"
 #include "piece3dobject.h"
 #include "nether.h"
+
+#include "glprintf.h"
+#include "stroke_font.h"
 
 static SDL_Window *window=0;
 static SDL_GLContext glcontext=0;
@@ -174,6 +174,143 @@ void get_render_size(int &w,int &h)
 } /* get_render_size */ 
 
 
+/* ------------------------------------------------------------------ */
+/* Font debug/test mode.                                               */
+/*                                                                     */
+/* Renders every printable ASCII character using the stroke font,     */
+/* each in its own grid cell with its ASCII code printed below, so     */
+/* broken glyphs are easy to spot. Exits on any key press.             */
+/* ------------------------------------------------------------------ */
+
+/* Small helper to draw a text string at a pixel position, with a       */
+/* given scale factor. The pen is repositioned for each character.      */
+static void draw_stroke_text(const char *s, float x, float y, float scale)
+{
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslatef(x,y,0.0f);
+	glScalef(scale,scale,1.0f);
+	while (*s) {
+		stroke_char(*s);
+		glTranslatef(STROKE_ADVANCE,0.0f,0.0f);
+		s++;
+	}
+	glPopMatrix();
+}
+
+/* Draw one frame of the font test screen. Returns nothing. */
+static void font_test_draw(int w,int h)
+{
+	int i;
+	int first=32, last=126;            /* printable ASCII range, inclusive */
+	int total=last-first+1;
+	int margin=16;
+	int cols=16;
+	int rows=(total+cols-1)/cols;
+	int label_h=64;                     /* space reserved on top for the title */
+
+	int cellw=(w-2*margin)/cols;
+	int cellh=(h-2*margin-label_h)/rows;
+	if (cellw<1) cellw=1;
+	if (cellh<1) cellh=1;
+
+	/* Glyph scale: fit cap height (~119 native) and advance (~104) inside cell. */
+	float sx=(cellw*0.8f)/STROKE_ADVANCE;
+	float sy=(cellh*0.6f)/119.0f;
+	float scale=(sx<sy?sx:sy);
+	if (scale<=0.0f) scale=1.0f;
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_SCISSOR_TEST);
+
+	glClearColor(0.05f,0.05f,0.08f,1.0f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0,(GLdouble)w,0,(GLdouble)h,-1,1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	/* Title. */
+	glColor3f(1.0f,1.0f,1.0f);
+	draw_stroke_text("FONT TEST - press any key to exit", margin, h-margin-label_h, 0.5f);
+
+	for (i=0;i<total;i++) {
+		int col=i%cols;
+		int row=i/cols;
+		int code=first+i;
+		float cx=margin+(float)col*cellw;
+		float cy=h-margin-label_h-(float)(row+1)*cellh;
+
+		/* Cell border (dim). */
+		glColor3f(0.25f,0.25f,0.30f);
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(cx+1,cy+1);
+		glVertex2f(cx+cellw-1,cy+1);
+		glVertex2f(cx+cellw-1,cy+cellh-1);
+		glVertex2f(cx+1,cy+cellh-1);
+		glEnd();
+
+		if (code==32) {
+			/* Space glyph has no strokes; just paint a faint block so it is visible. */
+			glColor3f(0.15f,0.15f,0.20f);
+			glBegin(GL_QUADS);
+			glVertex2f(cx+4,cy+4);
+			glVertex2f(cx+cellw-4,cy+4);
+			glVertex2f(cx+cellw-4,cy+cellh-4);
+			glVertex2f(cx+4,cy+cellh-4);
+			glEnd();
+		}
+
+		/* The glyph: centered horizontally on the baseline. */
+		glColor3f(1.0f,0.9f,0.3f);
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glTranslatef(cx+cellw*0.5f, cy+cellh*0.2f, 0.0f);
+		glScalef(scale,scale,1.0f);
+		glTranslatef(-STROKE_ADVANCE*0.5f,0.0f,0.0f);
+		stroke_char(code);
+		glPopMatrix();
+
+		/* ASCII code label under the glyph. */
+		char lbl[16];
+		sprintf(lbl,"%d",code);
+		glColor3f(0.5f,0.8f,1.0f);
+		draw_stroke_text(lbl, cx+cellw*0.5f-14.0f, cy+4.0f, 0.25f);
+	}
+}
+
+/* Run the font test mode until a key is pressed (or the window closes). */
+void font_test(void)
+{
+	int w,h;
+	SDL_Event event;
+	bool quit=false;
+
+	while (!quit) {
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_KEYDOWN:
+					quit=true;
+					break;
+				case SDL_QUIT:
+					quit=true;
+					break;
+				default:
+					break;
+			}
+		}
+		get_render_size(w,h);
+		font_test_draw(w,h);
+		swap_buffers();
+		SDL_Delay(16);
+	}
+} /* font_test */
+
 
 #ifdef _WIN32
 int PASCAL WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -189,11 +326,26 @@ int main(int argc, char** argv)
 	SDL_Event event;
     bool quit = false;
 
-	glutInit(&argc, argv);
 
 	load_configuration();
 
 	if (!initialization((fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0))) return 0;
+
+	/* Debug mode: dump the whole ASCII font for visual inspection, then  */
+	/* exit on any key press. Triggered with --fonttest on the command    */
+	/* line (or the first argument), so it never affects normal play.     */
+	{
+		bool do_fonttest=false;
+		for (int i=1;i<argc;i++) {
+			if (strcmp(argv[i],"--fonttest")==0 || strcmp(argv[i],"-t")==0)
+				do_fonttest=true;
+		}
+		if (do_fonttest) {
+			font_test();
+			finalization();
+			return 0;
+		}
+	}
 
 	time=init_time=SDL_GetTicks();
 

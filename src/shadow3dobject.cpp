@@ -4,11 +4,8 @@
 
 #include "stdio.h"
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "glport.h"
+
 #include "vector.h"
 #include "cmc.h"
 #include "3dobject.h"

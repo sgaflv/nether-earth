@@ -5,9 +5,7 @@
 float draw3Dtext(const char *text,float dx,float dy,float dz,float r,float g,float b);
 
 void glutSolidBox(float dx,float dy,float dz);
-
-void glutPrint(const char *str);
-void glutPrintxy(float x,float y,const char *str);
+void glutSolidSphere(float radius,int slices,int stacks);
 
 void Normal(double vector1[3],double vector2[3],double resultado[3]);
 void Normalf(float vector1[3],float vector2[3],float resultado[3]);

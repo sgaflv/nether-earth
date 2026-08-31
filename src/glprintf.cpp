@@ -1,25 +1,91 @@
 #ifdef _WIN32
 #include "windows.h"
 #endif
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
 
 #include "stdio.h"
 #include "string.h"
 #include "stdarg.h"
+#include "glport.h"
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <GLUT/glut.h>
-#else
-#include "GL/gl.h"
-#include "GL/glu.h"
-#include "GL/glut.h"
-#endif
+#include "stroke_font.h"
+
+static int stroke_width(char c)
+{
+	(void)c;
+	return STROKE_ADVANCE;
+}
+
+static void draw_char(float x, float y, unsigned char c)
+{
+	const short *g;
+	int first_x, first_y;
+	bool have_point=false;
+	bool pen_down=false;
+
+	if (c>=128) return;
+	g=glyph_table[c];
+	if (g==0) return;
+
+	have_point=false;
+	pen_down=false;
+	first_x=first_y=0;
+
+	/* Iterate over polylines: */ 
+	while (*g!=END_GLYPH) {
+		int cx,cy;
+		cx=g[0]; cy=g[1];
+		if (cx==PEN_UP && cy==PEN_UP) {
+			/* Start a new stroke (pen up): */ 
+			have_point=false;
+			pen_down=false;
+			g+=2;
+			continue;
+		}
+		if (!have_point) {
+			first_x=cx; first_y=cy;
+			have_point=true;
+			pen_down=true;
+			g+=2;
+			continue;
+		}
+		glBegin(GL_LINES);
+		glVertex2f(x+first_x, y+first_y);
+		glVertex2f(x+cx, y+cy);
+		glEnd();
+		first_x=cx; first_y=cy;
+		pen_down=true;
+		g+=2;
+	}
+	(void)pen_down;
+}
+
+/* ------------------------------------------------------------------ */
+/* Replacement for glutStrokeWidth.                                    */
+/* ------------------------------------------------------------------ */
+static int glutStrokeWidth(int font, char c)
+{
+	(void)font;
+	return stroke_width(c);
+}
+
+/* ------------------------------------------------------------------ */
+/* Replacement for glutStrokeCharacter: draws one character at the     */
+/* current raster/modelview position in the XY plane.                  */
+/* ------------------------------------------------------------------ */
+static void glutStrokeCharacter(int font, char c)
+{
+	(void)font;
+	glNormal3f(0.0f,0.0f,1.0f);
+	draw_char(0.0f,0.0f,c);
+}
+
+/* Public helper (used by the font debug/test mode): draws a single     */
+/* stroke-font character at the current modelview origin.               */
+void stroke_char(int c)
+{
+	glNormal3f(0.0f,0.0f,1.0f);
+	draw_char(0.0f,0.0f,(unsigned char)c);
+}
 
 void glprintf(const char *fmt, ...)						
 {
@@ -36,14 +102,15 @@ void glprintf(const char *fmt, ...)
 
 	tl=strlen(text);
 	for(i=0;i<tl;i++) {
-		length+=glutStrokeWidth(GLUT_STROKE_MONO_ROMAN,text[i]);	
+		length+=glutStrokeWidth(0,text[i]);	
 	} /* for /*/ 
 
 	glTranslatef(-length/2,0.0f,0.0f);					// Center Our Text On The Screen
 
 	glNormal3f(0.0,0.0,1.0);
 	for(i=0;i<tl;i++) {
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,text[i]);
+		glutStrokeCharacter(0,text[i]);
+		glTranslatef(STROKE_ADVANCE,0.0f,0.0f);
 	} /* for */ 
 } /* glprintf */ 
 
@@ -64,7 +131,7 @@ void scaledglprintf(float sx,float sy,const char *fmt, ...)
 
 	tl=strlen(text);
 	for(i=0;i<tl;i++) {
-		length+=glutStrokeWidth(GLUT_STROKE_MONO_ROMAN,text[i]);	
+		length+=glutStrokeWidth(0,text[i]);	
 	} /* for /*/ 
 
 	glMatrixMode(GL_MODELVIEW);
@@ -75,7 +142,8 @@ void scaledglprintf(float sx,float sy,const char *fmt, ...)
 
 	glNormal3f(0.0,0.0,1.0);
 	for(i=0;i<tl;i++) {
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,text[i]);
+		glutStrokeCharacter(0,text[i]);
+		glTranslatef(STROKE_ADVANCE,0.0f,0.0f);
 	} /* for */ 
 
 	glPopMatrix();
@@ -98,16 +166,19 @@ void scaledglprintf2(float sx,float sy,const char *fmt, ...)
 
 	tl=strlen(text);
 	for(i=0;i<tl;i++) {
-		length+=glutStrokeWidth(GLUT_STROKE_MONO_ROMAN,text[i]);	
+		length+=glutStrokeWidth(0,text[i]);	
 	} /* for /*/ 
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glScalef(sx,sy,1.0f);
 
+	glTranslatef(-length/2,0.0f,0.0f);					// Center Our Text On The Screen
+
 	glNormal3f(0.0,0.0,1.0);
 	for(i=0;i<tl;i++) {
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,text[i]);
+		glutStrokeCharacter(0,text[i]);
+		glTranslatef(STROKE_ADVANCE,0.0f,0.0f);
 	} /* for */ 
 
 	glPopMatrix();
@@ -130,7 +201,7 @@ void fittedglprintf(float sx,float sy,const char *fmt, ...)
 
 	tl=strlen(text);
 	for(i=0;i<tl;i++) {
-		length+=glutStrokeWidth(GLUT_STROKE_MONO_ROMAN,text[i]);	
+		length+=glutStrokeWidth(0,text[i]);	
 	} /* for /*/ 
 
 	glMatrixMode(GL_MODELVIEW);
@@ -141,7 +212,8 @@ void fittedglprintf(float sx,float sy,const char *fmt, ...)
 
 	glNormal3f(0.0,0.0,1.0);
 	for(i=0;i<tl;i++) {
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,text[i]);
+		glutStrokeCharacter(0,text[i]);
+		glTranslatef(STROKE_ADVANCE,0.0f,0.0f);
 	} /* for */ 
 
 	glPopMatrix();
