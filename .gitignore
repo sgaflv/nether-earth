@@ -10,3 +10,12 @@ nether.cfg
 *~
 *.swp
 .DS_Store
+
+# Android build
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/third_party/
+android/**/build/
+*.apk

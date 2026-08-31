@@ -64,7 +64,6 @@ Argus Press Software.
 - **RPM packaging:** Ilya Kuznecov
 - **Release packaging (0.51/0.52):** Andrej
 
-
 ## License
 
 Note: **there is no license file in this repository.** The remake was released
