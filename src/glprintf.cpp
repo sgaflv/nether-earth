@@ -20,12 +20,14 @@ static void draw_char(float x, float y, unsigned char c)
 	const short *g;
 	int first_x, first_y;
 	bool have_point=false;
+	int i=0;
+	float lc[256*2*2];
 
 	if (c>=128) return;
 	g=glyph_table[c];
 	if (g==0) return;
 
-	/* Iterate over strokes: */
+	/* Iterate over strokes: accumulate segments into a line vertex array. */ 
 	while (*g!=END_GLYPH_VAL) {
 		int cx,cy;
 		cx=g[0]; cy=g[1];
@@ -37,15 +39,21 @@ static void draw_char(float x, float y, unsigned char c)
 			g+=2;
 			continue;
 		}
-		if (have_point) {
-			glBegin(GL_LINES);
-			glVertex2f(x+first_x, y+first_y);
-			glVertex2f(x+cx, y+cy);
-			glEnd();
+		if (have_point && i<256) {
+			lc[i*4+0]=x+first_x; lc[i*4+1]=y+first_y;
+			lc[i*4+2]=x+cx;      lc[i*4+3]=y+cy;
+			i++;
 		}
 		first_x=cx; first_y=cy;
 		have_point=true;
 		g+=2;
+	}
+
+	if (i>0) {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2,GL_FLOAT,0,lc);
+		glDrawArrays(GL_LINES,0,i*2);
+		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 }
 

@@ -35,6 +35,10 @@ C3DObject::C3DObject()
 	tx=0;
 	ty=0;
 	textures=0;
+	drw_vtx=0;
+	drw_nor=0;
+	drw_txc=0;
+	drw_built=false;
 } /* C3DObject::C3DObject */ 
 
 
@@ -53,6 +57,10 @@ C3DObject::C3DObject(const char *file,const char *texturedir)
 	tx=0;
 	ty=0;
 	textures=0;
+	drw_vtx=0;
+	drw_nor=0;
+	drw_txc=0;
+	drw_built=false;
 
 	l=strlen(file);
 
@@ -404,6 +412,7 @@ void C3DObject::CalculaNormales(int *smooth)
 
 C3DObject::~C3DObject()
 {
+	discard_draw_buffers();
 	if (puntos!=NULL) delete []puntos;
 	if (normales!=NULL) delete []normales;
 	if (caras!=NULL) delete []caras;
@@ -420,6 +429,60 @@ C3DObject::~C3DObject()
 
 
 
+/* Build index-expanded vertex/normal/texcoord buffers for GLES drawing.
+ * Each face is expanded into 3 explicit vertices so glDrawArrays works. */
+bool C3DObject::build_draw_buffers(void)
+{
+	int i,off1;
+
+	discard_draw_buffers();
+
+	if (!valid() || ncaras<=0) return false;
+
+	drw_vtx=new float[ncaras*3*3];
+	drw_nor=new float[ncaras*3*3];
+	if (drw_vtx==0 || drw_nor==0) return false;
+	if (textures!=0 && tx!=0 && ty!=0) {
+		drw_txc=new float[ncaras*3*2];
+		if (drw_txc==0) return false;
+	}
+
+	for(i=0,off1=0;i<ncaras;i++) {
+		int k;
+		for(k=0;k<3;k++) {
+			int idx=caras[i*3+k];
+			drw_vtx[off1*3+0]=puntos[idx*3+0];
+			drw_vtx[off1*3+1]=puntos[idx*3+1];
+			drw_vtx[off1*3+2]=puntos[idx*3+2];
+			drw_nor[off1*3+0]=normales[i*9+k*3+0];
+			drw_nor[off1*3+1]=normales[i*9+k*3+1];
+			drw_nor[off1*3+2]=normales[i*9+k*3+2];
+			if (drw_txc!=0) {
+				drw_txc[off1*2+0]=tx[i*3+k];
+				drw_txc[off1*2+1]=ty[i*3+k];
+			}
+			off1++;
+		}
+	}
+
+	drw_built=true;
+	return true;
+} /* build_draw_buffers */
+
+
+void C3DObject::discard_draw_buffers(void)
+{
+	if (drw_vtx!=0) delete []drw_vtx;
+	if (drw_nor!=0) delete []drw_nor;
+	if (drw_txc!=0) delete []drw_txc;
+	drw_vtx=0;
+	drw_nor=0;
+	drw_txc=0;
+	drw_built=false;
+} /* discard_draw_buffers */
+
+
+
 bool C3DObject::valid(void)
 {
 	if (npuntos!=0 && ncaras!=0 && puntos!=NULL && normales!=NULL && caras!=NULL) return true;
@@ -433,70 +496,38 @@ void C3DObject::draw(void)
 {
 	int i;
 
-	if (textures!=0) {
-		if (display_list==-1) {
-			display_list=glGenLists(1);
-			glNewList(display_list,GL_COMPILE);
-			/* Draw the object: */ 
-			{
-				glEnable(GL_TEXTURE_2D);
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3,GL_FLOAT,0,puntos);
+	if (!drw_built) build_draw_buffers();
 
-				for(i=0;i<ncaras;i++) {
-					glBindTexture(GL_TEXTURE_2D,textures[i]);
-					glColor3f(1,1,1);
+	if (drw_vtx==0) return;
 
-					glBegin(GL_TRIANGLES);
-					glTexCoord2f(tx[i*3],ty[i*3]);
-					glNormal3f(normales[i*9+0],normales[i*9+1],normales[i*9+2]);
-					glArrayElement(caras[i*3]);
+	if (textures!=0 && drw_txc!=0) {
+		/* Textured: each face binds its own texture. */
+		glEnable(GL_TEXTURE_2D);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glVertexPointer(3,GL_FLOAT,0,drw_vtx);
+		glNormalPointer(GL_FLOAT,0,drw_nor);
+		glTexCoordPointer(2,GL_FLOAT,0,drw_txc);
 
-					glTexCoord2f(tx[i*3+1],ty[i*3+1]);
-					glNormal3f(normales[i*9+3],normales[i*9+4],normales[i*9+5]);
-					glArrayElement(caras[i*3+1]);
-
-					glTexCoord2f(tx[i*3+2],ty[i*3+2]);
-					glNormal3f(normales[i*9+6],normales[i*9+7],normales[i*9+8]);
-					glArrayElement(caras[i*3+2]);
-					glEnd();		
-				} /* for */ 		
-				glDisable(GL_TEXTURE_2D);
-			} 
-			glEndList();
-
-			glCallList(display_list);
-		} else {
-			glCallList(display_list);
-		} /* if */ 
-
+		for(i=0;i<ncaras;i++) {
+			glBindTexture(GL_TEXTURE_2D,textures[i]);
+			glColor3f(1,1,1);
+			glDrawArrays(GL_TRIANGLES,i*3,3);
+		} /* for */ 		
+		glDisable(GL_TEXTURE_2D);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
 	} else {
-		if (display_list==-1) {
-			display_list=glGenLists(1);
-			glNewList(display_list,GL_COMPILE);
-			/* Draw the object: */ 
-			{
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3,GL_FLOAT,0,puntos);
-
-				glBegin(GL_TRIANGLES);
-				for(i=0;i<ncaras;i++) {
-					glColor3f(r[i],g[i],b[i]);
-					glNormal3f(normales[i*9+0],normales[i*9+1],normales[i*9+2]);
-					glArrayElement(caras[i*3]);
-					glNormal3f(normales[i*9+3],normales[i*9+4],normales[i*9+5]);
-					glArrayElement(caras[i*3+1]);
-					glNormal3f(normales[i*9+6],normales[i*9+7],normales[i*9+8]);
-					glArrayElement(caras[i*3+2]);
-				} /* for */ 
-				glEnd();		
-			} 
-			glEndList();
-
-			glCallList(display_list);
-		} else {
-			glCallList(display_list);
-		} /* if */ 
+		/* Untextured: draw all faces at once. */
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glVertexPointer(3,GL_FLOAT,0,drw_vtx);
+		glNormalPointer(GL_FLOAT,0,drw_nor);
+		glDrawArrays(GL_TRIANGLES,0,ncaras*3);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
 	} /* if */ 
 	
 } /* C3DObject::draw */ 
@@ -504,118 +535,76 @@ void C3DObject::draw(void)
 
 void C3DObject::draw(float r,float g,float b)
 {
-	int i,off1;
+	int i;
 
-	if (textures!=0) {
-		if (display_list==-1) {
-			display_list=glGenLists(1);
-			glNewList(display_list,GL_COMPILE);
-			/* Draw the object: */ 
-			{
-				glEnable(GL_TEXTURE_2D);
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3,GL_FLOAT,0,puntos);
+	if (!drw_built) build_draw_buffers();
 
-				for(i=0,off1=0;i<ncaras;i++) {
-					glBindTexture(GL_TEXTURE_2D,textures[i]);
-					glColor3f(1,1,1);
+	if (drw_vtx==0) return;
 
-					glBegin(GL_TRIANGLES);
-					glTexCoord2f(tx[off1],ty[off1]);
-					glNormal3f(normales[i*9+0],normales[i*9+1],normales[i*9+2]);
-					glArrayElement(caras[off1++]);
+	if (textures!=0 && drw_txc!=0) {
+		/* Textured: per-face textures. */
+		glEnable(GL_TEXTURE_2D);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glVertexPointer(3,GL_FLOAT,0,drw_vtx);
+		glNormalPointer(GL_FLOAT,0,drw_nor);
+		glTexCoordPointer(2,GL_FLOAT,0,drw_txc);
 
-					glTexCoord2f(tx[off1],ty[off1]);
-					glNormal3f(normales[i*9+3],normales[i*9+4],normales[i*9+5]);
-					glArrayElement(caras[off1++]);
-
-					glTexCoord2f(tx[off1],ty[off1]);
-					glNormal3f(normales[i*9+6],normales[i*9+7],normales[i*9+8]);
-					glArrayElement(caras[off1++]);
-					glEnd();		
-				} /* for */ 		
-				glDisable(GL_TEXTURE_2D);
-			} 
-			glEndList();
-
-			glCallList(display_list);
-		} else {
-			glCallList(display_list);
-		} /* if */ 
+		for(i=0;i<ncaras;i++) {
+			glBindTexture(GL_TEXTURE_2D,textures[i]);
+			glColor3f(1,1,1);
+			glDrawArrays(GL_TRIANGLES,i*3,3);
+		} /* for */ 		
+		glDisable(GL_TEXTURE_2D);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
 	} else {
-//		if (display_list==-1) {
-//			display_list=glGenLists(1);
-//			glNewList(display_list,GL_COMPILE_AND_EXECUTE);
-			/* Draw the object: */ 
-			{
-				/* Draw the object: */ 
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(3,GL_FLOAT,0,puntos);
-				glColor3f(r,g,b);
-
-				for(i=0,off1=0;i<ncaras;i++) {
-					glBegin(GL_TRIANGLES);
-					glNormal3f(normales[i*9+0],normales[i*9+1],normales[i*9+2]);
-					glArrayElement(caras[off1++]);
-					glNormal3f(normales[i*9+3],normales[i*9+4],normales[i*9+5]);
-					glArrayElement(caras[off1++]);
-					glNormal3f(normales[i*9+6],normales[i*9+7],normales[i*9+8]);
-					glArrayElement(caras[off1++]);
-					glEnd();
-				} /* for */ 
-			}
-//			glEndList();
-//		} else {
-//			glCallList(display_list);
-//		} /* if */ 
+		/* Untextured flat color: all faces at once. */
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glVertexPointer(3,GL_FLOAT,0,drw_vtx);
+		glNormalPointer(GL_FLOAT,0,drw_nor);
+		glColor3f(r,g,b);
+		glDrawArrays(GL_TRIANGLES,0,ncaras*3);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
 	} /* if */ 
 } /* C3DObject::draw */ 
 
 
 void C3DObject::draw_notexture(float r,float g,float b)
 {
-	int i,off1;
+	if (!drw_built) build_draw_buffers();
+	if (drw_vtx==0) return;
 
-	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3,GL_FLOAT,0,puntos);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glVertexPointer(3,GL_FLOAT,0,drw_vtx);
+	glNormalPointer(GL_FLOAT,0,drw_nor);
 	glColor3f(r,g,b);
-
-	for(i=0,off1=0;i<ncaras;i++) {
-		glBegin(GL_TRIANGLES);
-		glNormal3f(normales[i*9+0],normales[i*9+1],normales[i*9+2]);
-		glArrayElement(caras[off1++]);
-		glNormal3f(normales[i*9+3],normales[i*9+4],normales[i*9+5]);
-		glArrayElement(caras[off1++]);
-		glNormal3f(normales[i*9+6],normales[i*9+7],normales[i*9+8]);
-		glArrayElement(caras[off1++]);
-		glEnd();
-	} /* for */ 
+	glDrawArrays(GL_TRIANGLES,0,ncaras*3);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 } /* draw_notexture */ 
 
 
 void C3DObject::draw_notexture(float r,float g,float b,float a)
 {
-	int i,off1;
+	if (!drw_built) build_draw_buffers();
+	if (drw_vtx==0) return;
 
-	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3,GL_FLOAT,0,puntos);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glVertexPointer(3,GL_FLOAT,0,drw_vtx);
+	glNormalPointer(GL_FLOAT,0,drw_nor);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glColor4f(r,g,b,a);
-
-	for(i=0,off1=0;i<ncaras;i++) {
-		glBegin(GL_TRIANGLES);
-		glNormal3f(normales[i*9+0],normales[i*9+1],normales[i*9+2]);
-		glArrayElement(caras[off1++]);
-		glNormal3f(normales[i*9+3],normales[i*9+4],normales[i*9+5]);
-		glArrayElement(caras[off1++]);
-		glNormal3f(normales[i*9+6],normales[i*9+7],normales[i*9+8]);
-		glArrayElement(caras[off1++]);
-		glEnd();
-	} /* for */ 
-
+	glDrawArrays(GL_TRIANGLES,0,ncaras*3);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisable(GL_BLEND);
 } /* draw_notexture */ 
 
@@ -631,7 +620,7 @@ void C3DObject::drawcmc(float r,float g,float b)
 
 void C3DObject::refresh_display_lists(void)
 {
-	glDeleteLists(display_list,1);
+	discard_draw_buffers();
 	display_list=-1;
 } /* C3DObject::refresh_display_lists */ 
 

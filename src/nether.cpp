@@ -574,12 +574,18 @@ void NETHER::draw(int width,int height)
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
-		glBegin(GL_TRIANGLE_STRIP);
-		glVertex3f(-1.0, 1.0,0.0);
-		glVertex3f(-1.0,-1.0,0.0);
-		glVertex3f( 1.0, 1.0,0.0);
-		glVertex3f( 1.0,-1.0,0.0);
-		glEnd();
+		{
+			float quad[4*3] = {
+				-1.0f, 1.0f, 0.0f,
+				-1.0f,-1.0f, 0.0f,
+				 1.0f, 1.0f, 0.0f,
+				 1.0f,-1.0f, 0.0f
+			};
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3,GL_FLOAT,0,quad);
+			glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+			glDisableClientState(GL_VERTEX_ARRAY);
+		}
 		glPopMatrix();
 
 		glDisable(GL_BLEND);

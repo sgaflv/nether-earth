@@ -169,46 +169,35 @@ void CMC::drawabsolute(float r,float g,float b)
 void CMC::draw(float r,float g,float b)
 {
 	float c[4];
+	float lc[24*3];
+	int i=0;
 
 	glGetFloatv(GL_CURRENT_COLOR,c);
 	glColor3f(r,g,b);
-	glBegin(GL_LINES);
-	glVertex3f(x[0],y[0],z[0]);
-	glVertex3f(x[1],y[0],z[0]);
 
-	glVertex3f(x[1],y[0],z[0]);
-	glVertex3f(x[1],y[1],z[0]);
+#define CMC_VERT(vx,vy,vz) do { lc[i*3+0]=(vx); lc[i*3+1]=(vy); lc[i*3+2]=(vz); i++; } while(0)
+	/* bottom face */ 
+	CMC_VERT(x[0],y[0],z[0]); CMC_VERT(x[1],y[0],z[0]);
+	CMC_VERT(x[1],y[0],z[0]); CMC_VERT(x[1],y[1],z[0]);
+	CMC_VERT(x[1],y[1],z[0]); CMC_VERT(x[0],y[1],z[0]);
+	CMC_VERT(x[0],y[1],z[0]); CMC_VERT(x[0],y[0],z[0]);
+	/* top face */ 
+	CMC_VERT(x[0],y[0],z[1]); CMC_VERT(x[1],y[0],z[1]);
+	CMC_VERT(x[1],y[0],z[1]); CMC_VERT(x[1],y[1],z[1]);
+	CMC_VERT(x[1],y[1],z[1]); CMC_VERT(x[0],y[1],z[1]);
+	CMC_VERT(x[0],y[1],z[1]); CMC_VERT(x[0],y[0],z[1]);
+	/* verticals */ 
+	CMC_VERT(x[0],y[0],z[0]); CMC_VERT(x[0],y[0],z[1]);
+	CMC_VERT(x[1],y[0],z[0]); CMC_VERT(x[1],y[0],z[1]);
+	CMC_VERT(x[0],y[1],z[0]); CMC_VERT(x[0],y[1],z[1]);
+	CMC_VERT(x[1],y[1],z[0]); CMC_VERT(x[1],y[1],z[1]);
+#undef CMC_VERT
 
-	glVertex3f(x[1],y[1],z[0]);
-	glVertex3f(x[0],y[1],z[0]);
+	glVertexPointer(3,GL_FLOAT,0,lc);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glDrawArrays(GL_LINES,0,i);
+	glDisableClientState(GL_VERTEX_ARRAY);
 
-	glVertex3f(x[0],y[1],z[0]);
-	glVertex3f(x[0],y[0],z[0]);
-
-	glVertex3f(x[0],y[0],z[1]);
-	glVertex3f(x[1],y[0],z[1]);
-
-	glVertex3f(x[1],y[0],z[1]);
-	glVertex3f(x[1],y[1],z[1]);
-
-	glVertex3f(x[1],y[1],z[1]);
-	glVertex3f(x[0],y[1],z[1]);
-
-	glVertex3f(x[0],y[1],z[1]);
-	glVertex3f(x[0],y[0],z[1]);
-
-	glVertex3f(x[0],y[0],z[0]);
-	glVertex3f(x[0],y[0],z[1]);
-
-	glVertex3f(x[1],y[0],z[0]);
-	glVertex3f(x[1],y[0],z[1]);
-
-	glVertex3f(x[0],y[1],z[0]);
-	glVertex3f(x[0],y[1],z[1]);
-
-	glVertex3f(x[1],y[1],z[0]);
-	glVertex3f(x[1],y[1],z[1]);
-	glEnd();
 	glColor4f(c[0],c[1],c[2],c[3]);
 } /* CMC::draw */ 
 

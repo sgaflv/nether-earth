@@ -151,7 +151,7 @@ public:
 			tmp=tmp->Getnext();
 			index--;
 		} /* while */ 
-		if (tmp==NULL) throw;
+		if (tmp==NULL) return NULL;
 		return tmp->GetObj();
 	};
 

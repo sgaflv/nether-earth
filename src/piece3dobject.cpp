@@ -91,8 +91,6 @@ Piece3DObject::~Piece3DObject()
 
 void Piece3DObject::DrawShadow(int angle,Vector light,float r,float g,float b,float a)
 {
-	int i;
-
 	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glColor4f(r,g,b,a);
@@ -107,61 +105,48 @@ void Piece3DObject::DrawShadow(int angle,Vector light,float r,float g,float b,fl
 
 	switch(angle) {
 	case 0:
-		glVertexPointer(3,GL_FLOAT,0,shdw_puntos_0);
-		glBegin(GL_TRIANGLES);
-		for(i=0;i<shdw_ncaras_0;i++) {
-			glArrayElement(shdw_caras_0[i*3]);
-			glArrayElement(shdw_caras_0[i*3+1]);
-			glArrayElement(shdw_caras_0[i*3+2]);
-		} /* for */ 
-		glEnd();
+		ExpandAndDrawShadow(shdw_puntos_0,shdw_caras_0,shdw_ncaras_0);
 		break;
 	case 90:
-		glVertexPointer(3,GL_FLOAT,0,shdw_puntos_90);
-		glBegin(GL_TRIANGLES);
-		for(i=0;i<shdw_ncaras_90;i++) {
-			glArrayElement(shdw_caras_90[i*3]);
-			glArrayElement(shdw_caras_90[i*3+1]);
-			glArrayElement(shdw_caras_90[i*3+2]);
-		} /* for */ 
-		glEnd();
+		ExpandAndDrawShadow(shdw_puntos_90,shdw_caras_90,shdw_ncaras_90);
 		break;
 	case 180:
-		glVertexPointer(3,GL_FLOAT,0,shdw_puntos_180);
-		glBegin(GL_TRIANGLES);
-		for(i=0;i<shdw_ncaras_180;i++) {
-			glArrayElement(shdw_caras_180[i*3]);
-			glArrayElement(shdw_caras_180[i*3+1]);
-			glArrayElement(shdw_caras_180[i*3+2]);
-		} /* for */ 
-		glEnd();
+		ExpandAndDrawShadow(shdw_puntos_180,shdw_caras_180,shdw_ncaras_180);
 		break;
 	case 270:
-		glVertexPointer(3,GL_FLOAT,0,shdw_puntos_270);
-		glBegin(GL_TRIANGLES);
-		for(i=0;i<shdw_ncaras_270;i++) {
-			glArrayElement(shdw_caras_270[i*3]);
-			glArrayElement(shdw_caras_270[i*3+1]);
-			glArrayElement(shdw_caras_270[i*3+2]);
-		} /* for */ 
-		glEnd();
+		ExpandAndDrawShadow(shdw_puntos_270,shdw_caras_270,shdw_ncaras_270);
 		break;
 	default:
 		ComputeDynamicShadow(angle,light);
 
-		glVertexPointer(3,GL_FLOAT,0,shdw_puntos_dynamic);
-		glBegin(GL_TRIANGLES);
-		for(i=0;i<shdw_ncaras_dynamic;i++) {
-			glArrayElement(shdw_caras_dynamic[i*3]);
-			glArrayElement(shdw_caras_dynamic[i*3+1]);
-			glArrayElement(shdw_caras_dynamic[i*3+2]);
-		} /* for */ 
-		glEnd();
+		ExpandAndDrawShadow(shdw_puntos_dynamic,shdw_caras_dynamic,shdw_ncaras_dynamic);
 		break;
 	} /* switch */ 
 
 	if (a!=1) glDisable(GL_BLEND);
 } /* Piece3DObject::DraqwShadow */ 
+
+
+void Piece3DObject::ExpandAndDrawShadow(float *puntos,int *caras,int ncaras)
+{
+	int i;
+	float *vtx;
+
+	if (puntos==0 || caras==0 || ncaras<=0) return;
+
+	vtx=new float[ncaras*3*3];
+	for(i=0;i<ncaras*3;i++) {
+		int idx=caras[i];
+		vtx[i*3+0]=puntos[idx*3+0];
+		vtx[i*3+1]=puntos[idx*3+1];
+		vtx[i*3+2]=puntos[idx*3+2];
+	} /* for */ 
+
+	glVertexPointer(3,GL_FLOAT,0,vtx);
+	glDrawArrays(GL_TRIANGLES,0,ncaras*3);
+
+	delete []vtx;
+} /* Piece3DObject::ExpandAndDrawShadow */ 
 
 
 void Piece3DObject::ComputeShadow(int angle,Vector light,int *np,int *nc,float **p,int **c,CMC *cmc)

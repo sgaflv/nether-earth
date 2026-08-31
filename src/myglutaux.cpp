@@ -106,69 +106,42 @@ int nearest2pow(int n)
 
 void glutSolidBox(float dx,float dy,float dz)
 {
-	glBegin(GL_TRIANGLES);
+	/* 36 vertices = 12 triangles, each with position + normal */ 
+	float vx[36*3];
+	float vn[36*3];
+	int i=0;
+
+#define BOX_VERT(nx,ny,nz, px,py,pz) do { \
+	vn[i*3+0]=(nx); vn[i*3+1]=(ny); vn[i*3+2]=(nz); \
+	vx[i*3+0]=(px); vx[i*3+1]=(py); vx[i*3+2]=(pz); i++; } while(0)
 
 	/* UP */ 
-	glNormal3f(0,1.0,0);
-	glVertex3f(-dx,-dy,-dz);
-	glVertex3f( dx,-dy, dz);
-	glVertex3f( dx,-dy,-dz);
-
-	glVertex3f( dx,-dy, dz);
-	glVertex3f(-dx,-dy,-dz);
-	glVertex3f(-dx,-dy, dz);
-
+	BOX_VERT(0,1,0, -dx,-dy,-dz); BOX_VERT(0,1,0,  dx,-dy, dz); BOX_VERT(0,1,0,  dx,-dy,-dz);
+	BOX_VERT(0,1,0,  dx,-dy, dz); BOX_VERT(0,1,0, -dx,-dy,-dz); BOX_VERT(0,1,0, -dx,-dy, dz);
 	/* DOWN */ 
-	glNormal3f(0,-1.0,0);
-	glVertex3f( dx, dy, dz);
-	glVertex3f(-dx, dy,-dz);
-	glVertex3f( dx, dy,-dz);
-
-	glVertex3f(-dx, dy,-dz);
-	glVertex3f( dx, dy, dz);
-	glVertex3f(-dx, dy, dz);
-
+	BOX_VERT(0,-1,0,  dx, dy, dz); BOX_VERT(0,-1,0, -dx, dy,-dz); BOX_VERT(0,-1,0,  dx, dy,-dz);
+	BOX_VERT(0,-1,0, -dx, dy,-dz); BOX_VERT(0,-1,0,  dx, dy, dz); BOX_VERT(0,-1,0, -dx, dy, dz);
 	/* LEFT */ 
-	glNormal3f(1.0,0,0);
-	glVertex3f(-dx,-dy,-dz);
-	glVertex3f(-dx, dy, dz);
-	glVertex3f(-dx, dy,-dz);
-
-	glVertex3f(-dx, dy, dz);
-	glVertex3f(-dx,-dy,-dz);
-	glVertex3f(-dx,-dy, dz);
-
+	BOX_VERT(1,0,0, -dx,-dy,-dz); BOX_VERT(1,0,0, -dx, dy, dz); BOX_VERT(1,0,0, -dx, dy,-dz);
+	BOX_VERT(1,0,0, -dx, dy, dz); BOX_VERT(1,0,0, -dx,-dy,-dz); BOX_VERT(1,0,0, -dx,-dy, dz);
 	/* RIGHT */ 
-	glNormal3f(-1.0,0,0);
-	glVertex3f( dx, dy, dz);
-	glVertex3f( dx,-dy,-dz);
-	glVertex3f( dx, dy,-dz);
-
-	glVertex3f( dx,-dy,-dz);
-	glVertex3f( dx, dy, dz);
-	glVertex3f( dx,-dy, dz);
-
+	BOX_VERT(-1,0,0,  dx, dy, dz); BOX_VERT(-1,0,0,  dx,-dy,-dz); BOX_VERT(-1,0,0,  dx, dy,-dz);
+	BOX_VERT(-1,0,0,  dx,-dy,-dz); BOX_VERT(-1,0,0,  dx, dy, dz); BOX_VERT(-1,0,0,  dx,-dy, dz);
 	/* FRONT */ 
-	glNormal3f(0.0,0,-1.0);
-	glVertex3f(-dx,-dy, dz);
-	glVertex3f( dx, dy, dz);
-	glVertex3f( dx,-dy, dz);
-
-	glVertex3f( dx, dy, dz);
-	glVertex3f(-dx,-dy, dz);
-	glVertex3f(-dx, dy, dz);
-
+	BOX_VERT(0,0,-1, -dx,-dy, dz); BOX_VERT(0,0,-1,  dx, dy, dz); BOX_VERT(0,0,-1,  dx,-dy, dz);
+	BOX_VERT(0,0,-1,  dx, dy, dz); BOX_VERT(0,0,-1, -dx,-dy, dz); BOX_VERT(0,0,-1, -dx, dy, dz);
 	/* BACK */ 
-	glNormal3f(0.0,0,1.0);
-	glVertex3f( dx, dy,-dz);
-	glVertex3f(-dx,-dy,-dz);
-	glVertex3f( dx,-dy,-dz);
+	BOX_VERT(0,0,1,  dx, dy,-dz); BOX_VERT(0,0,1, -dx,-dy,-dz); BOX_VERT(0,0,1,  dx,-dy,-dz);
+	BOX_VERT(0,0,1, -dx,-dy,-dz); BOX_VERT(0,0,1,  dx, dy,-dz); BOX_VERT(0,0,1, -dx, dy,-dz);
+#undef BOX_VERT
 
-	glVertex3f(-dx,-dy,-dz);
-	glVertex3f( dx, dy,-dz);
-	glVertex3f(-dx, dy,-dz);
-
-	glEnd();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glVertexPointer(3,GL_FLOAT,0,vx);
+	glNormalPointer(GL_FLOAT,0,vn);
+	glDrawArrays(GL_TRIANGLES,0,i);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
 } /* glutSolidBox */ 
 
 
@@ -178,6 +151,8 @@ void glutSolidSphere(float radius,int slices,int stacks)
 	float theta1,theta2;
 	float x1,z1,x2,z2;
 	float nx1,nz1,nx2,nz2;
+	int nverts;
+	float *vx,*vn;
 
 	if (radius==0) radius=0.0001f;
 	if (radius<0) radius=-radius;
@@ -185,11 +160,15 @@ void glutSolidSphere(float radius,int slices,int stacks)
 	if (slices<3) slices=3;
 	if (stacks<2) stacks=2;
 
+	nverts=(slices+1)*2;
+	vx=new float[nverts*3];
+	vn=new float[nverts*3];
+
 	for(i=0;i<stacks;i++) {
+		int k=0;
 		theta1 = float(i)*3.14159265f/float(stacks);
 		theta2 = float(i+1)*3.14159265f/float(stacks);
 
-		glBegin(GL_TRIANGLE_STRIP);
 		for(j=0;j<=slices;j++) {
 			float phi = float(j)*2.0f*3.14159265f/float(slices);
 			float cphi=cosf(phi), sphi=sinf(phi);
@@ -202,14 +181,26 @@ void glutSolidSphere(float radius,int slices,int stacks)
 			nx1=st1*cphi; nz1=st1*sphi;
 			nx2=st2*cphi; nz2=st2*sphi;
 
-			glNormal3f(nx1,ct1,nz1);
-			glVertex3f(x1,radius*ct1,z1);
+			vn[k*3+0]=nx1; vn[k*3+1]=ct1;   vn[k*3+2]=nz1;
+			vx[k*3+0]=x1;  vx[k*3+1]=radius*ct1; vx[k*3+2]=z1;
+			k++;
 
-			glNormal3f(nx2,ct2,nz2);
-			glVertex3f(x2,radius*ct2,z2);
+			vn[k*3+0]=nx2; vn[k*3+1]=ct2;   vn[k*3+2]=nz2;
+			vx[k*3+0]=x2;  vx[k*3+1]=radius*ct2; vx[k*3+2]=z2;
+			k++;
 		} /* for */ 
-		glEnd();
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glVertexPointer(3,GL_FLOAT,0,vx);
+		glNormalPointer(GL_FLOAT,0,vn);
+		glDrawArrays(GL_TRIANGLE_STRIP,0,k);
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
 	} /* for */ 
+
+	delete []vx;
+	delete []vn;
 } /* glutSolidSphere */ 
 
 

@@ -39,6 +39,13 @@ void gluLookAt(float eyeX,float eyeY,float eyeZ,
                float centerX,float centerY,float centerZ,
                float upX,float upY,float upZ);
 
+#if defined(__ANDROID__) || defined(ANDROID)
+/* OpenGL ES 1.x lacks the GLdouble glOrtho and glColor3f used by this code
+ * base; provide GLES-compatible replacements here. */
+void glOrtho(double l, double r, double b, double t, double n, double f);
+void glColor3f(GLfloat red, GLfloat green, GLfloat blue);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

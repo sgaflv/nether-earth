@@ -11,6 +11,10 @@ public:
 	void ComputeFixedShadows(Vector light);
 	void ComputeDynamicShadow(int angle,Vector light);
 	void ComputeShadow(int angle,Vector light,int *np,int *nc,float **p,int **c,CMC *cmc);
+
+	/* Expand indexed shadow vertices into an explicit array for
+	 * GLES1 (which lacks GL_UNSIGNED_INT glDrawElements) and draw. */
+	void ExpandAndDrawShadow(float *puntos,int *caras,int ncaras);
 	
 	/* 2D Shadow: */ 
 	int shdw_npuntos_0,shdw_npuntos_90,shdw_npuntos_180,shdw_npuntos_270,shdw_npuntos_dynamic;

@@ -72,3 +72,34 @@ void gluLookAt(float eyeX,float eyeY,float eyeZ,
 	glMultMatrixf(m);
 	glTranslatef(-eyeX, -eyeY, -eyeZ);
 }
+
+/* ------------------------------------------------------------------ */
+/* glOrtho replacement (OpenGL ES only)                               */
+/*                                                                     */
+/* OpenGL ES 1.x provides glOrthof (GLfloat) but not the GLdouble      */
+/* glOrtho used elsewhere; build the orthographic projection matrix    */
+/* and multiply it into the current matrix (matches desktop glOrtho).  */
+/* ------------------------------------------------------------------ */
+#if defined(__ANDROID__) || defined(ANDROID)
+void glOrtho(double l, double r, double b, double t, double n, double f)
+{
+	GLfloat m[16];
+	int i;
+
+	for(i=0;i<16;i++) m[i]=0.0f;
+	m[0]  = (GLfloat)(2.0 / (r - l));
+	m[5]  = (GLfloat)(2.0 / (t - b));
+	m[10] = (GLfloat)(-2.0 / (f - n));
+	m[12] = (GLfloat)(-(r + l) / (r - l));
+	m[13] = (GLfloat)(-(t + b) / (t - b));
+	m[14] = (GLfloat)(-(f + n) / (f - n));
+	m[15] = 1.0f;
+
+	glMultMatrixf(m);
+}
+
+void glColor3f(GLfloat red, GLfloat green, GLfloat blue)
+{
+	glColor4f(red, green, blue, 1.0f);
+}
+#endif

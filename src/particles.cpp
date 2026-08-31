@@ -67,32 +67,29 @@ void NETHER::DrawParticle(PARTICLE *p)
 	sz=val*p->size1+val2*p->size2;
 	glNormal3f(0,0,1);
 
-	glBegin(GL_TRIANGLES);
-	glColor4f(p->r,p->g,p->b,val*p->a1+val2*p->a2);
-	glVertex3f(0,0,0);
-	glColor4f(p->r,p->g,p->b,0);
-	glVertex3f(sz,0,0);
-	glVertex3f(0,sz,0);
+	{
+		/* 12 vertices (4 triangles), each with position and per-vertex alpha color */ 
+		float vx[12*3];
+		float vc[12*4];
+		float a_core=val*p->a1+val2*p->a2;
+		int k=0;
+#define PART_V(pvx,pvy,pvz, alpha) do { \
+			vx[k*3+0]=(pvx); vx[k*3+1]=(pvy); vx[k*3+2]=(pvz); \
+			vc[k*4+0]=p->r; vc[k*4+1]=p->g; vc[k*4+2]=p->b; vc[k*4+3]=(alpha); k++; } while(0)
+		PART_V(0,0,0, a_core); PART_V(sz,0,0, 0); PART_V(0,sz,0, 0);
+		PART_V(0,0,0, a_core); PART_V(0,sz,0, 0); PART_V(-sz,0,0, 0);
+		PART_V(0,0,0, a_core); PART_V(-sz,0,0, 0); PART_V(0,-sz,0, 0);
+		PART_V(0,0,0, a_core); PART_V(0,-sz,0, 0); PART_V(sz,0,0, 0);
+#undef PART_V
 
-	glColor4f(p->r,p->g,p->b,val*p->a1+val2*p->a2);
-	glVertex3f(0,0,0);
-	glColor4f(p->r,p->g,p->b,0);
-	glVertex3f(0,sz,0);
-	glVertex3f(-sz,0,0);
-
-	glColor4f(p->r,p->g,p->b,val*p->a1+val2*p->a2);
-	glVertex3f(0,0,0);
-	glColor4f(p->r,p->g,p->b,0);
-	glVertex3f(-sz,0,0);
-	glVertex3f(0,-sz,0);
-
-	glColor4f(p->r,p->g,p->b,val*p->a1+val2*p->a2);
-	glVertex3f(0,0,0);
-	glColor4f(p->r,p->g,p->b,0);
-	glVertex3f(0,-sz,0);
-	glVertex3f(sz,0,0);
-
-	glEnd();
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3,GL_FLOAT,0,vx);
+		glColorPointer(4,GL_FLOAT,0,vc);
+		glDrawArrays(GL_TRIANGLES,0,k);
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+	}
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);

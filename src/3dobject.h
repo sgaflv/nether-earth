@@ -46,6 +46,15 @@ public:
 
 	float *tx,*ty;
 	unsigned int *textures;
+
+	/* GLES-friendly precomputed draw buffers (replaces desktop display lists): */ 
+	float *drw_vtx;		/* ncaras*3*3 positions (index-expanded) */ 
+	float *drw_nor;		/* ncaras*3*3 normals   (index-expanded) */ 
+	float *drw_txc;		/* ncaras*3*2 texture coords (index-expanded) */ 
+	bool  drw_built;	/* true when buffers ready */ 
+
+	bool build_draw_buffers(void);
+	void discard_draw_buffers(void);
 };
 
 #endif

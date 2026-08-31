@@ -43,10 +43,10 @@ Shadow3DObject::~Shadow3DObject()
 void Shadow3DObject::DrawShadow(float r,float g,float b,float a)
 {
 	int i;
+	float *vtx;
 
 	/* Draw the object: */ 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3,GL_FLOAT,0,shdw_puntos);
 	glColor4f(r,g,b,a);
 	glNormal3f(0,1,0);
 
@@ -54,13 +54,20 @@ void Shadow3DObject::DrawShadow(float r,float g,float b,float a)
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 	} /* if */ 
-	glBegin(GL_TRIANGLES);
-	for(i=0;i<shdw_ncaras;i++) {
-		glArrayElement(shdw_caras[i*3]);
-		glArrayElement(shdw_caras[i*3+1]);
-		glArrayElement(shdw_caras[i*3+2]);
-	} /* for */ 
-	glEnd();
+
+	/* GLES1 lacks GL_UNSIGNED_INT glDrawElements: expand indices to vertices. */ 
+	if (shdw_puntos!=0 && shdw_caras!=0 && shdw_ncaras>0) {
+		vtx=new float[shdw_ncaras*3*3];
+		for(i=0;i<shdw_ncaras*3;i++) {
+			int idx=shdw_caras[i];
+			vtx[i*3+0]=shdw_puntos[idx*3+0];
+			vtx[i*3+1]=shdw_puntos[idx*3+1];
+			vtx[i*3+2]=shdw_puntos[idx*3+2];
+		} /* for */ 
+		glVertexPointer(3,GL_FLOAT,0,vtx);
+		glDrawArrays(GL_TRIANGLES,0,shdw_ncaras*3);
+		delete []vtx;
+	} /* if */ 
 
 	if (a!=1) glDisable(GL_BLEND);
 } /* Shadow3DObject::DraqwShadow */ 
