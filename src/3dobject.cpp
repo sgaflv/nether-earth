@@ -1,7 +1,5 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
 #include "glport.h"
+#include "assets.h"
 
 
 #include "string.h"
@@ -83,7 +81,7 @@ bool C3DObject::loadASC(const char *file)
 
 	int *smooth;
 
-	fp=fopen(file,"r+");
+	fp=asset_open(file,"r");
 	if (fp==NULL) return false;
 
 	/* Import a 3DStudio .ASC file */ 

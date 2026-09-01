@@ -1,7 +1,3 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
-
 #include "string.h"
 #include "stdlib.h"
 
@@ -9,10 +5,6 @@
 #include "math.h"
 
 #include "glport.h"
-
-
-#include "SDL.h"
-#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -50,11 +42,11 @@ bool NETHER::cycle(const unsigned char *keyboard)
 	fflush(debug_fp);
 #endif
 
-	if (keyboard[SDL_SCANCODE_PAGEUP] || keyboard[SDL_SCANCODE_KP_MINUS]) {
+	if (keyboard[KEY_PAGEUP] || keyboard[KEY_KP_MINUS]) {
 		zoom*=1.1;
 		if (zoom>8) zoom=8;
 	} /* if */ 
-	if (keyboard[SDL_SCANCODE_PAGEDOWN] || keyboard[SDL_SCANCODE_KP_PLUS]) {
+	if (keyboard[KEY_PAGEDOWN] || keyboard[KEY_KP_PLUS]) {
 		zoom/=1.1;
 		if (zoom<0.5) zoom=0.5;
 	} /* if */ 
@@ -299,7 +291,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 
 							act_menu=DIRECTCONTROL_MENU;
 							redrawmenu=2;
-							if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+							if (S_select!=0 && sound) audio_play(S_select,128);
 						}
 						break;
 					case ROBOT2_BUTTON:
@@ -307,7 +299,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 							killmenu(ROBOT_MENU);
 							newmenu(ORDERS_MENU);
 							act_button=ORDERS1_BUTTON;
-							if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+							if (S_select!=0 && sound) audio_play(S_select,128);
 						}
 						break;
 					case ROBOT3_BUTTON:
@@ -315,7 +307,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 							killmenu(ROBOT_MENU);
 							newmenu(COMBATMODE_MENU);
 							act_button=COMBAT6_BUTTON;
-							if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+							if (S_select!=0 && sound) audio_play(S_select,128);
 						}
 						break;
 					case ROBOT4_BUTTON:
@@ -326,7 +318,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						killmenu(ROBOT_MENU);
 						newmenu(GENERAL_MENU);
 						ship_op3=OP_UP;
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					} /* switch */ 
 				} /* if */ 
@@ -445,7 +437,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 
 							act_menu=DIRECTCONTROL2_MENU;
 							redrawmenu=2;
-							if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+							if (S_select!=0 && sound) audio_play(S_select,128);
 						}
 						break;
 					case COMBAT6_BUTTON:
@@ -453,7 +445,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						killmenu(COMBATMODE_MENU);
 						newmenu(ROBOT_MENU);
 						act_button=ROBOT3_BUTTON;
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					} /* switch */ 
 				} /* if */ 
@@ -514,7 +506,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						killmenu(ORDERS_MENU);
 						newmenu(ROBOT_MENU);
 						act_button=ROBOT4_BUTTON;
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					case ORDERS2_BUTTON:
 						/* ADVANCE ?? MILES: */ 
@@ -524,7 +516,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 
 						killmenu(ORDERS_MENU);
 						newmenu(SELECTDISTANCE_MENU);
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					case ORDERS3_BUTTON:
 						/* RETREAT ?? MILES: */ 
@@ -534,21 +526,21 @@ bool NETHER::cycle(const unsigned char *keyboard)
 
 						killmenu(ORDERS_MENU);
 						newmenu(SELECTDISTANCE_MENU);
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					case ORDERS4_BUTTON:
 						/* SEARCH AND DESTROY: */ 
 						killmenu(ORDERS_MENU);
 						newmenu(TARGETD_MENU);
 						act_button=TARGET1_BUTTON;
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					case ORDERS5_BUTTON:
 						/* SEARCH AND CAPTURE: */ 
 						killmenu(ORDERS_MENU);
 						newmenu(TARGETC_MENU);
 						act_button=TARGET1_BUTTON;
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					} /* switch */ 
 				} /* if */ 
@@ -578,7 +570,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 					killmenu(SELECTDISTANCE_MENU);
 					newmenu(ROBOT_MENU);
 					act_button=ROBOT4_BUTTON;
-					if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+					if (S_select!=0 && sound) audio_play(S_select,128);
 				} /* if */ 
 			}
 			break;
@@ -640,10 +632,10 @@ bool NETHER::cycle(const unsigned char *keyboard)
 							controlled->program=PROGRAM_DESTROY;
 							controlled->program_parameter=P_PARAM_ROBOTS;
 							controlled->program_goal=Vector(-1,-1,-1);
-							if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+							if (S_select!=0 && sound) audio_play(S_select,128);
 						} else {
 							/* The robot has no standard WEAPONS!: */ 
-							if (S_wrong!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_wrong,0),128);
+							if (S_wrong!=0 && sound) audio_play(S_wrong,128);
 						} /* if */ 
 						break;
 					case TARGET2_BUTTON:
@@ -654,10 +646,10 @@ bool NETHER::cycle(const unsigned char *keyboard)
 							controlled->program=PROGRAM_DESTROY;
 							controlled->program_parameter=P_PARAM_EFACTORIES;
 							controlled->program_goal=Vector(-1,-1,-1);
-							if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+							if (S_select!=0 && sound) audio_play(S_select,128);
 						} else {
 							/* The robot has no NUCLEAR weapons: */ 
-							if (S_wrong!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_wrong,0),128);
+							if (S_wrong!=0 && sound) audio_play(S_wrong,128);
 						} /* if */ 
 						break;
 					case TARGET3_BUTTON:
@@ -668,10 +660,10 @@ bool NETHER::cycle(const unsigned char *keyboard)
 							controlled->program=PROGRAM_DESTROY;
 							controlled->program_parameter=P_PARAM_WARBASES;
 							controlled->program_goal=Vector(-1,-1,-1);
-							if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+							if (S_select!=0 && sound) audio_play(S_select,128);
 						} else {
 							/* The robot has no NUCLEAR weapons: */ 
-							if (S_wrong!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_wrong,0),128);
+							if (S_wrong!=0 && sound) audio_play(S_wrong,128);
 						} /* if */ 
 						break;
 					} /* switch */ 
@@ -733,7 +725,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						controlled->program=PROGRAM_CAPTURE;
 						controlled->program_parameter=P_PARAM_NFACTORIES;
 						controlled->program_goal=Vector(-1,-1,-1);
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					case TARGET2_BUTTON:
 						killmenu(TARGETC_MENU);
@@ -742,7 +734,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						controlled->program=PROGRAM_CAPTURE;
 						controlled->program_parameter=P_PARAM_EFACTORIES;
 						controlled->program_goal=Vector(-1,-1,-1);
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					case TARGET3_BUTTON:
 						killmenu(TARGETC_MENU);
@@ -751,7 +743,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						controlled->program=PROGRAM_CAPTURE;
 						controlled->program_parameter=P_PARAM_WARBASES;
 						controlled->program_goal=Vector(-1,-1,-1);
-						if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+						if (S_select!=0 && sound) audio_play(S_select,128);
 						break;
 					} /* switch */ 
 				} /* if */ 
@@ -1067,7 +1059,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						b->cmc=BulletCMC(b);
 
 						bullets.Add(b);
-						if (S_shot!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_shot,0),SFX_volume(r->pos));
+						if (S_shot!=0 && sound) audio_play(S_shot,SFX_volume(r->pos));
 					} /* if */ 
 
 					if (r->op==ROBOTOP_MISSILES && r->firetimer==0) {
@@ -1081,7 +1073,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						b->cmc=BulletCMC(b);
 
 						bullets.Add(b);
-						if (S_shot!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_shot,0),SFX_volume(r->pos));
+						if (S_shot!=0 && sound) audio_play(S_shot,SFX_volume(r->pos));
 					} /* if */ 
 
 					if (r->op==ROBOTOP_PHASERS && r->firetimer==0) {
@@ -1095,7 +1087,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						b->cmc=BulletCMC(b);
 
 						bullets.Add(b);
-						if (S_shot!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_shot,0),SFX_volume(r->pos));
+						if (S_shot!=0 && sound) audio_play(S_shot,SFX_volume(r->pos));
 					} /* if */ 
 
 					if (r->op==ROBOTOP_CANNONS ||
@@ -1154,7 +1146,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 							} /* while */ 
 						}
 
-						if (S_explosion!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_explosion,0),SFX_volume(r->pos));
+						if (S_explosion!=0 && sound) audio_play(S_explosion,SFX_volume(r->pos));
 						recomputestatistics=true;
 					} /* if */ 
 
@@ -1413,7 +1405,7 @@ bool NETHER::cycle(const unsigned char *keyboard)
 						n=new EXPLOSION(r->pos,1);
 						explosions.Add(n);
 
-						if (S_explosion!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_explosion,0),SFX_volume(r->pos));
+						if (S_explosion!=0 && sound) audio_play(S_explosion,SFX_volume(r->pos));
 						if (r==controlled) {
 							controlled->shipover=false;
 							controlled=0;

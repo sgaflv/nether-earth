@@ -1,16 +1,12 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
 
 #include "string.h"
 #include "stdio.h"
 #include "math.h"
 
 #include "glport.h"
+#include "assets.h"
 
 
-#include "SDL.h"
-#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -41,7 +37,7 @@ bool NETHER::save_game(const char *filename)
 	BULLET *bul;
 	EXPLOSION *e;
 
-	fp=fopen(filename,"w");
+	fp=user_open(filename,"w");
 	if (fp==0) return false;
 
 /*
@@ -206,7 +202,7 @@ bool NETHER::load_game(const char *filename)
 	BULLET *bul;
 	EXPLOSION *e;
 
-	fp=fopen(filename,"r");
+	fp=user_open(filename,"r");
 	if (fp==0) return false;
 
 /*

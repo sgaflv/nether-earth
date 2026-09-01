@@ -1,6 +1,3 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
 
 #include "string.h"
 #include "stdio.h"
@@ -9,8 +6,6 @@
 #include "glport.h"
 
 
-#include "SDL.h"
-#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -299,9 +294,9 @@ bool NETHER::construction_cycle(const unsigned char *keyboard)
 		} /* for */ 
 
 		if (enoughresources) {
-			if (S_select!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_select,0),128);
+			if (S_select!=0 && sound) audio_play(S_select,128);
 		} else {
-			if (S_wrong!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_wrong,0),128);
+			if (S_wrong!=0 && sound) audio_play(S_wrong,128);
 		} /* if */ 
 	} /* if */ 
 
@@ -335,14 +330,14 @@ bool NETHER::construction_cycle(const unsigned char *keyboard)
 
 				game_state=STATE_PLAYING;
 				shipp.z=2.0;
-				if (S_construction!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_construction,0),128);
+				if (S_construction!=0 && sound) audio_play(S_construction,128);
 			} else {
 				/* The factory entrance is blocked: */ 
 				delete r;
 			} /* if */ 
 		} else {
 			/* Wrong robot: */ 
-			if (S_wrong!=0 && sound) Mix_Volume(Mix_PlayChannel(-1,S_wrong,0),128);
+			if (S_wrong!=0 && sound) audio_play(S_wrong,128);
 		} /* if */ 
 	} /* if */ 
 

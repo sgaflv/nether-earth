@@ -1,13 +1,12 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
 
 #include "stdio.h"
 
-#include "glport.h"
+#include "string.h"
+#include "stdlib.h"
 
-#include "SDL.h"
-#include "SDL_mixer.h"
+#include "glport.h"
+#include "assets.h"
+
 
 #include "list.h"
 #include "vector.h"
@@ -28,7 +27,7 @@ bool NETHER::loadmap(const char *file)
 	FILE *fp;
 	int i;
 
-	fp=fopen(file,"r");
+	fp=asset_open(file,"r");
 	if (fp==0) return false;
 
 	if (2!=fscanf(fp,"%i %i",&map_w,&map_h)) {

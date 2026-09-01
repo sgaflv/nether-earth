@@ -4,6 +4,9 @@
 
 // #define _WRITE_REPORT_
 
+#include "platform.h"
+#include "audio.h"
+
 
 #define COLISION_TEST_THRESHOLD	9.0
 #define INTRO_TIME 60
@@ -334,7 +337,7 @@ private:
 	int *map;
 	float lightpos[4];
 	Vector lightposv;
-	unsigned char old_keyboard[SDL_NUM_SCANCODES];
+	unsigned char old_keyboard[KEY_COUNT];
 
 	float zoom;
 	Vector camera,viewp;
@@ -394,7 +397,7 @@ private:
 	int *atackmap;
 
 	/* Sound: */ 
-	Mix_Chunk *S_shot,*S_explosion,*S_select,*S_wrong,*S_construction;
+	Sound *S_shot,*S_explosion,*S_select,*S_wrong,*S_construction;
 	
 
 };

@@ -1,6 +1,3 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
 
 #include "glport.h"
 
@@ -649,13 +646,13 @@ unsigned int createTexture(const char *fname)
 		} /* for */ 
 
 		glGenTextures(1,&tname);
-		glPixelStorei(GL_UNPACK_ALIGNMENT,tname);
+		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 		glBindTexture(GL_TEXTURE_2D,tname);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,TEXTURE_APPROXIMATION);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,TEXTURE_APPROXIMATION);
-		glTexImage2D(GL_TEXTURE_2D,0,4,sz,sz,0,GL_RGBA,GL_UNSIGNED_BYTE,textura);
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,sz,sz,0,GL_RGBA,GL_UNSIGNED_BYTE,textura);
 		delete textura;
 	} else {
 		delete bmp;
@@ -688,13 +685,13 @@ unsigned int createTexture(const char *fname,int x,int y,int sz)
 		} /* for */ 
 
 		glGenTextures(1,&tname);
-		glPixelStorei(GL_UNPACK_ALIGNMENT,tname);
+		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 		glBindTexture(GL_TEXTURE_2D,tname);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,TEXTURE_APPROXIMATION);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,TEXTURE_APPROXIMATION);
-		glTexImage2D(GL_TEXTURE_2D,0,4,sz,sz,0,GL_RGBA,GL_UNSIGNED_BYTE,textura);
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,sz,sz,0,GL_RGBA,GL_UNSIGNED_BYTE,textura);
 		delete textura;
 		delete bmp;
 	} else {

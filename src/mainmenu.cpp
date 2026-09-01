@@ -1,11 +1,3 @@
-#ifdef _WIN32
-#include "windows.h"
-#else
-#include <stddef.h>
-#include <sys/types.h>
-#include <dirent.h>
-#endif
-
 #include "string.h"
 #include "stdio.h"
 #include "math.h"
@@ -14,8 +6,8 @@
 #include "glport.h"
 
 
-#include "SDL.h"
-#include "SDL_mixer.h"
+#include "platform.h"
+#include "assets.h"
 
 #include "list.h"
 #include "vector.h"
@@ -41,6 +33,7 @@ char *strupr(char *in)
 
     return(buffer);
  }
+
 #endif
 
 extern int SCREEN_X;
@@ -60,7 +53,7 @@ extern int mainmenu_status;
 extern int mainmenu_substatus;
 extern int mainmenu_selection;
 extern C3DObject *nethertittle;
-unsigned char old_keyboard[SDL_NUM_SCANCODES];
+unsigned char old_keyboard[KEY_COUNT];
 
 void save_configuration(void);
 void load_configuration(void);
@@ -73,8 +66,7 @@ int mainmenu_cycle(int width,int height)
 	int retval=0;
 	const unsigned char *keyboard;
 
-	SDL_PumpEvents();
-	keyboard = SDL_GetKeyboardState(NULL);
+	keyboard = platform_get_keyboard_state();
 
 	switch(mainmenu_status) {
 	case 0:
@@ -86,11 +78,15 @@ int mainmenu_cycle(int width,int height)
 		break;
 	case 1:
 		mainmenu_substatus++;
-		if (keyboard[down_key] && !old_keyboard[down_key]) {
+		/* Gamepad D-pad / stick alias onto the arrow keys, so accept   */
+		/* both the configured movement keys and the arrows.            */
+		if ((keyboard[down_key] && !old_keyboard[down_key]) ||
+		    (keyboard[KEY_DOWN] && !old_keyboard[KEY_DOWN])) {
 			mainmenu_selection++;
 			if (mainmenu_selection>=5) mainmenu_selection=0;
 		} /* if */ 
-		if (keyboard[up_key] && !old_keyboard[up_key]) {
+		if ((keyboard[up_key] && !old_keyboard[up_key]) ||
+		    (keyboard[KEY_UP] && !old_keyboard[KEY_UP])) {
 			mainmenu_selection--;
 			if (mainmenu_selection<0) mainmenu_selection=4;
 		} /* if */ 
@@ -108,52 +104,21 @@ int mainmenu_cycle(int width,int height)
 			case 3:/* Change the MAP: */ 
 				   if (mapnames.EmptyP()) {
 					   /* Fill the mapnames list: */ 
-#ifdef _WIN32
-					   WIN32_FIND_DATA finfo;
-					   HANDLE h;
-
-					   h=FindFirstFile("assets/maps/*.map",&finfo);
-					   if (h!=INVALID_HANDLE_VALUE) {
-						   if (strcmp(finfo.cFileName,".")!=0 &&
-							   strcmp(finfo.cFileName,"..")!=0) {
-							   char *name;
-							   name=new char[strlen(finfo.cFileName)+1];
-							   strcpy(name,finfo.cFileName);
-							   mapnames.Add(name);
-						   } /* if */ 
-
-						   while(FindNextFile(h,&finfo)==TRUE) {
-
-							   if (strcmp(finfo.cFileName,".")!=0 &&
-								   strcmp(finfo.cFileName,"..")!=0) {
-								   char *name;
-								   name=new char[strlen(finfo.cFileName)+1];
-								   strcpy(name,finfo.cFileName);
-								   mapnames.Add(name);
-							   } /* if */ 
-						   } /* while */ 
-					   } /* if */ 
-				
-#else
-					   DIR *dp;
-					   struct dirent *ep;
-				  
-					   dp = opendir ("assets/maps/");
-					   if (dp != NULL)
 					   {
-						   while (ep = readdir (dp))
-						   {
-							   if ((strstr(ep->d_name,".map") + 4) == ep->d_name + strlen(ep->d_name))
-							   {
+						   char **ml=asset_list("maps",".map");
+						   int m=0;
+
+						   if (ml!=0) {
+							   while(ml[m]!=0) {
 								   char *name;
-								   name=new char[strlen(ep->d_name)+1];
-								   strcpy(name,ep->d_name);
+								   name=new char[strlen(ml[m])+1];
+								   strcpy(name,ml[m]);
 								   mapnames.Add(name);
-							   }
-						   }
-						   (void) closedir (dp);
+								   m++;
+							   } /* while */ 
+							   asset_list_free(ml);
+						   } /* if */ 
 					   }
-#endif
 					   /* Look for the actualmap: */ 
 					   mapnames.Rewind();
 					   while(!mapnames.EndP() && strcmp(mapnames.GetObj(),mapname)!=0) mapnames.Next();
@@ -173,68 +138,37 @@ int mainmenu_cycle(int width,int height)
 				   break;
 			} /* switch */ 
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_1] && !old_keyboard[SDL_SCANCODE_1]) {
+		if (keyboard[KEY_1] && !old_keyboard[KEY_1]) {
 			mainmenu_status=4;
 			mainmenu_substatus=0;
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_2] && !old_keyboard[SDL_SCANCODE_2]) {
+		if (keyboard[KEY_2] && !old_keyboard[KEY_2]) {
 			mainmenu_status=6;
 			mainmenu_substatus=0;
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_3] && !old_keyboard[SDL_SCANCODE_3]) {
+		if (keyboard[KEY_3] && !old_keyboard[KEY_3]) {
 			mainmenu_status=2;
 			mainmenu_substatus=0;
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_4] && !old_keyboard[SDL_SCANCODE_4]) {
+		if (keyboard[KEY_4] && !old_keyboard[KEY_4]) {
 			/* Change the MAP: */ 
 			if (mapnames.EmptyP()) {
 				/* Fill the mapnames list: */ 
-#ifdef _WIN32
-				WIN32_FIND_DATA finfo;
-				HANDLE h;
+				{
+					char **ml=asset_list("maps",".map");
+					int m=0;
 
-				h=FindFirstFile("assets/maps/*.map",&finfo);
-				if (h!=INVALID_HANDLE_VALUE) {
-					if (strcmp(finfo.cFileName,".")!=0 &&
-						strcmp(finfo.cFileName,"..")!=0) {
-						char *name;
-						name=new char[strlen(finfo.cFileName)+1];
-						strcpy(name,finfo.cFileName);
-						mapnames.Add(name);
-					} /* if */ 
-
-					while(FindNextFile(h,&finfo)==TRUE) {
-
-						if (strcmp(finfo.cFileName,".")!=0 &&
-							strcmp(finfo.cFileName,"..")!=0) {
+					if (ml!=0) {
+						while(ml[m]!=0) {
 							char *name;
-							name=new char[strlen(finfo.cFileName)+1];
-							strcpy(name,finfo.cFileName);
+							name=new char[strlen(ml[m])+1];
+							strcpy(name,ml[m]);
 							mapnames.Add(name);
-						} /* if */ 
-					} /* while */ 
-				} /* if */ 
-				
-#else
-				DIR *dp;
-				struct dirent *ep;
-				  
-				dp = opendir ("assets/maps/");
-				if (dp != NULL)
-				 {
-				    while (ep = readdir (dp))
-				     {
-					if ((strstr(ep->d_name,".map") + 4) == ep->d_name + strlen(ep->d_name))
-					 {
-						char *name;
-						name=new char[strlen(ep->d_name)+1];
-						strcpy(name,ep->d_name);
-						mapnames.Add(name);
-					 }
-				     }
-				    (void) closedir (dp);
-				 }
-#endif
+							m++;
+						} /* while */ 
+						asset_list_free(ml);
+					} /* if */ 
+				}
 				/* Look for the actualmap: */ 
 				mapnames.Rewind();
 				while(!mapnames.EndP() && strcmp(mapnames.GetObj(),mapname)!=0) mapnames.Next();
@@ -249,7 +183,7 @@ int mainmenu_cycle(int width,int height)
 
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_5] && !old_keyboard[SDL_SCANCODE_5]) {
+		if (keyboard[KEY_5] && !old_keyboard[KEY_5]) {
 			mainmenu_status=5;
 			mainmenu_substatus=0;
 		} /* if */ 
@@ -262,7 +196,7 @@ int mainmenu_cycle(int width,int height)
 		} /* if */ 
 		break;
 	case 3:
-		if (keyboard[SDL_SCANCODE_1] && !old_keyboard[SDL_SCANCODE_1]) {
+		if (keyboard[KEY_1] && !old_keyboard[KEY_1]) {
 			switch(SCREEN_X) {
 			case 320:
 				SCREEN_X=400;
@@ -291,7 +225,7 @@ int mainmenu_cycle(int width,int height)
 			retval=3;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_2] && !old_keyboard[SDL_SCANCODE_2]) {
+		if (keyboard[KEY_2] && !old_keyboard[KEY_2]) {
 			switch(COLOUR_DEPTH) {
 			case 8:COLOUR_DEPTH=16;
 				break;
@@ -305,38 +239,38 @@ int mainmenu_cycle(int width,int height)
 			retval=3;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_3] && !old_keyboard[SDL_SCANCODE_3]) {
+		if (keyboard[KEY_3] && !old_keyboard[KEY_3]) {
 			if (fullscreen) fullscreen=false;
 					   else fullscreen=true;
 			retval=3;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_4] && !old_keyboard[SDL_SCANCODE_4]) {
+		if (keyboard[KEY_4] && !old_keyboard[KEY_4]) {
 			shadows++;
 			if (shadows>=3) shadows=0;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_5] && !old_keyboard[SDL_SCANCODE_5]) {
+		if (keyboard[KEY_5] && !old_keyboard[KEY_5]) {
 			detaillevel++;
 			if (detaillevel>=5) detaillevel=0;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_6] && !old_keyboard[SDL_SCANCODE_6]) {
+		if (keyboard[KEY_6] && !old_keyboard[KEY_6]) {
 			if (sound) sound=false;
 				  else sound=true;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_7] && !old_keyboard[SDL_SCANCODE_7]) {
+		if (keyboard[KEY_7] && !old_keyboard[KEY_7]) {
 			level++;
 			if (level>=4) level=0;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_8] && !old_keyboard[SDL_SCANCODE_8]) {
+		if (keyboard[KEY_8] && !old_keyboard[KEY_8]) {
 			if (show_radar) show_radar=false;
 					   else show_radar=true;
 			save_configuration();
 		} /* if */ 
-		if (keyboard[SDL_SCANCODE_9] && !old_keyboard[SDL_SCANCODE_9]) {
+		if (keyboard[KEY_9] && !old_keyboard[KEY_9]) {
 			mainmenu_status=0;
 			mainmenu_substatus=0;
 		} /* if */ 
@@ -364,7 +298,11 @@ int mainmenu_cycle(int width,int height)
 		{
 			int i;
 
-			for(i=0;i<SDL_NUM_SCANCODES;i++) {
+			for(i=0;i<KEY_COUNT;i++) {
+				/* The gamepad virtual keys are synthesised keys, never  */
+				/* physical ones: binding one into the config would make */
+				/* the gamepad alias onto itself (cascading presses).    */
+				if (i>=KEY_GAMEPAD_A && i<=KEY_GAMEPAD_STICK_RIGHT) continue;
 				if (keyboard[i] && !old_keyboard[i]) {
 					switch(mainmenu_substatus) {
 					case 0:up_key=i;
@@ -380,6 +318,8 @@ int mainmenu_cycle(int width,int height)
 					case 5:pause_key=i;
 						   break;
 					} /* sritch */ 
+					/* Keep the gamepad in sync with the new bindings: */ 
+					platform_set_gamepad_mapping(up_key,down_key,left_key,right_key,fire_key,pause_key);
 					mainmenu_substatus++;
 					if (mainmenu_substatus==7) {
 						mainmenu_status=0;
@@ -392,7 +332,7 @@ int mainmenu_cycle(int width,int height)
 		break;
 	} /* if */ 
 
-	for(i=0;i<SDL_NUM_SCANCODES;i++) old_keyboard[i]=keyboard[i];
+	for(i=0;i<KEY_COUNT;i++) old_keyboard[i]=keyboard[i];
 
 	return retval;
 } /* mainmenu_cycle */ 
@@ -530,33 +470,33 @@ void mainmenu_draw(int width,int height)
 			glTranslatef(0,-2,0);
 			if (mainmenu_substatus!=0) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR UP: %s",SDL_GetScancodeName((SDL_Scancode)up_key));
+			sprintf(tmp,"PRESS A KEY FOR UP: %s",platform_key_name(up_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=1) glColor3f(0.5,0.5,1.0);
 						 	 	  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR DOWN: %s",SDL_GetScancodeName((SDL_Scancode)down_key));
+			sprintf(tmp,"PRESS A KEY FOR DOWN: %s",platform_key_name(down_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=2) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR LEFT: %s",SDL_GetScancodeName((SDL_Scancode)left_key));
+			sprintf(tmp,"PRESS A KEY FOR LEFT: %s",platform_key_name(left_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=3) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR RIGHT: %s",SDL_GetScancodeName((SDL_Scancode)right_key));
+			sprintf(tmp,"PRESS A KEY FOR RIGHT: %s",platform_key_name(right_key));
 			scaledglprintf(0.005,0.005,tmp);
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=4) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR FIRE: %s",SDL_GetScancodeName((SDL_Scancode)fire_key));
+			sprintf(tmp,"PRESS A KEY FOR FIRE: %s",platform_key_name(fire_key));
 			scaledglprintf(0.005,0.005,tmp);
 
 			glTranslatef(0,-1,0);
 			if (mainmenu_substatus!=5) glColor3f(0.5,0.5,1.0);
 								  else glColor3f(1.0,0.0,0.0);
-			sprintf(tmp,"PRESS A KEY FOR PAUSE/MENU: %s",SDL_GetScancodeName((SDL_Scancode)pause_key));
+			sprintf(tmp,"PRESS A KEY FOR PAUSE/MENU: %s",platform_key_name(pause_key));
 			scaledglprintf(0.005,0.005,tmp);
 
 			glColor3f(0.5,0.5,1.0);
@@ -582,7 +522,7 @@ void load_configuration(void)
 	int v;
 	FILE *fp;
 
-	fp=fopen("nether.cfg","r");
+	fp=user_open("nether.cfg","r");
 	if (fp==0) return;
 
 	if (2!=fscanf(fp,"%i %i",&SCREEN_X,&SCREEN_Y)) return;
@@ -592,7 +532,23 @@ void load_configuration(void)
 	if (1!=fscanf(fp,"%i",&shadows)) return;
 	if (1!=fscanf(fp,"%i",&detaillevel)) return;
 
-	if (6!=fscanf(fp,"%i %i %i %i %i %i",&up_key,&down_key,&left_key,&right_key,&fire_key,&pause_key)) return;
+	{
+		int tmp_up, tmp_down, tmp_left, tmp_right, tmp_fire, tmp_pause;
+		if (6!=fscanf(fp,"%i %i %i %i %i %i",&tmp_up,&tmp_down,&tmp_left,&tmp_right,&tmp_fire,&tmp_pause)) return;
+		if (tmp_up>=0 && tmp_up<(int)platform_num_keys() &&
+		    tmp_down>=0 && tmp_down<(int)platform_num_keys() &&
+		    tmp_left>=0 && tmp_left<(int)platform_num_keys() &&
+		    tmp_right>=0 && tmp_right<(int)platform_num_keys() &&
+		    tmp_fire>=0 && tmp_fire<(int)platform_num_keys() &&
+		    tmp_pause>=0 && tmp_pause<(int)platform_num_keys()) {
+			up_key=tmp_up;
+			down_key=tmp_down;
+			left_key=tmp_left;
+			right_key=tmp_right;
+			fire_key=tmp_fire;
+			pause_key=tmp_pause;
+		}
+	}
 	if (1!=fscanf(fp,"%i",&v)) return;
 	if (v==0) sound=true;
 		 else sound=false;
@@ -609,7 +565,7 @@ void save_configuration(void)
 {
 	FILE *fp;
 
-	fp=fopen("nether.cfg","w");
+	fp=user_open("nether.cfg","w");
 	if (fp==0) return;
 
 	fprintf(fp,"%i %i\n",SCREEN_X,SCREEN_Y);

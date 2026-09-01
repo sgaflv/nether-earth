@@ -9,7 +9,7 @@
 UNAME_S := $(shell uname -s)
 
 SRCDIR = src
-SOURCES = 3dobject-ase.cpp 3dobject.cpp cmc.cpp nether.cpp piece3dobject.cpp vector.cpp bitmap.cpp bullet.cpp glprintf.cpp main.cpp mainmenu.cpp maps.cpp menu.cpp myglutaux.cpp nethercycle.cpp netherdebug.cpp nethersave.cpp particles.cpp construction.cpp quaternion.cpp radar.cpp enemy_ai.cpp robot_ai.cpp robots.cpp shadow3dobject.cpp glport.cpp
+SOURCES = 3dobject-ase.cpp 3dobject.cpp cmc.cpp nether.cpp piece3dobject.cpp vector.cpp bitmap.cpp bullet.cpp glprintf.cpp main.cpp mainmenu.cpp maps.cpp menu.cpp myglutaux.cpp nethercycle.cpp netherdebug.cpp nethersave.cpp particles.cpp construction.cpp quaternion.cpp radar.cpp enemy_ai.cpp robot_ai.cpp robots.cpp shadow3dobject.cpp glport.cpp assets.cpp platform.cpp audio.cpp
 OBJECTS = $(addprefix $(SRCDIR)/,$(SOURCES:.cpp=.o))
 TARGET = nether_earth
 CXX ?= g++
@@ -30,7 +30,7 @@ $(TARGET): $(OBJECTS)
 DEPFILES = $(OBJECTS:.o=.d)
 
 $(SRCDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) $(SDL2_CFLAGS) -I$(SRCDIR) -MMD -MP -c $< -o $@
+	$(CXX) $(SDL2_CFLAGS) -I$(SRCDIR) -MMD -MP -fPIE -fPIC -c $< -o $@
 
 -include $(DEPFILES)
 

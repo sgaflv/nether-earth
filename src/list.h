@@ -1,6 +1,9 @@
 #ifndef GENERIC_LIST
 #define GENERIC_LIST
 
+#include "stdlib.h"
+#include "string.h"
+
 /* 
 Functions for LISTS: 
 

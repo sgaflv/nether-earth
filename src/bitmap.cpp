@@ -1,6 +1,7 @@
 #include "stdio.h"
 
 #include "bitmap.h"
+#include "assets.h"
 
 Bitmap::Bitmap(const char *file)
 {
@@ -14,7 +15,7 @@ Bitmap::Bitmap(const char *file)
 	g=0;
 	b=0;
 
-	fp=fopen(file,"rb+");
+	fp=asset_open(file,"rb");
 	if (fp==NULL) return;
 
 	/* Tag: */ 

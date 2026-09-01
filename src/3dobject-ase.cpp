@@ -1,7 +1,5 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
 #include "glport.h"
+#include "assets.h"
 
 
 #include "string.h"
@@ -35,7 +33,7 @@ bool C3DObject::loadASE(const char *file,const char *texturedir)
 	char buffer[256];
 	FILE *fp;
 
-	fp=fopen(file,"r+");
+	fp=asset_open(file,"r");
 	if (fp==NULL) return false;
 
 	/* Look for the materials: */ 

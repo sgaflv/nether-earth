@@ -1,14 +1,9 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
 
 #include "stdio.h"
 #include "string.h"
 
 #include "glport.h"
 
-#include "SDL.h"
-#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"

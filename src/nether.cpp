@@ -1,16 +1,8 @@
-#ifdef _WIN32
-#include "windows.h"
-#endif
-
 #include "string.h"
 #include "stdio.h"
 #include "math.h"
 
 #include "glport.h"
-
-
-#include "SDL.h"
-#include "SDL_mixer.h"
 
 #include "list.h"
 #include "vector.h"
@@ -20,6 +12,7 @@
 #include "piece3dobject.h"
 #include "myglutaux.h"
 #include "nether.h"
+#include "assets.h"
 
 #include "glprintf.h"
 
@@ -41,7 +34,7 @@ NETHER::NETHER(const char *mapname)
 {
 
 #ifdef _WRITE_REPORT_
-	debug_fp=fopen("report.txt","w");
+	debug_fp=user_open("report.txt","w");
 	fprintf(debug_fp,"Creating game...\n");
 	fflush(debug_fp);
 #endif
@@ -170,11 +163,11 @@ NETHER::NETHER(const char *mapname)
 #endif
 
 	/* Load sounds: */ 
-	S_shot=Mix_LoadWAV("assets/sound/shot.wav");
-	S_explosion=Mix_LoadWAV("assets/sound/explosion.wav");
-	S_select=Mix_LoadWAV("assets/sound/select.wav");
-	S_wrong=Mix_LoadWAV("assets/sound/wrong.wav");
-	S_construction=Mix_LoadWAV("assets/sound/construction.wav");
+	S_shot=audio_load_wav("assets/sound/shot.wav");
+	S_explosion=audio_load_wav("assets/sound/explosion.wav");
+	S_select=audio_load_wav("assets/sound/select.wav");
+	S_wrong=audio_load_wav("assets/sound/wrong.wav");
+	S_construction=audio_load_wav("assets/sound/construction.wav");
 
 #ifdef _WRITE_REPORT_
 	fprintf(debug_fp,"Game created.\n");
@@ -197,11 +190,11 @@ NETHER::~NETHER()
 	fflush(debug_fp);
 #endif
 
-	Mix_FreeChunk(S_shot);
-	Mix_FreeChunk(S_explosion);
-	Mix_FreeChunk(S_select);
-	Mix_FreeChunk(S_wrong);
-	Mix_FreeChunk(S_construction);
+	audio_free(S_shot);
+	audio_free(S_explosion);
+	audio_free(S_select);
+	audio_free(S_wrong);
+	audio_free(S_construction);
 	S_shot=0;
 	S_explosion=0;
 	S_select=0;
@@ -441,8 +434,7 @@ bool NETHER::gamecycle(int w,int h)
 	bool retval=true;
 	const unsigned char *keyboard;
 
-	SDL_PumpEvents();
-	keyboard = SDL_GetKeyboardState(NULL);
+	keyboard = platform_get_keyboard_state();
 
 #ifdef _WRITE_REPORT_
 	fprintf(debug_fp,"Cycle start.\n");
@@ -464,7 +456,7 @@ bool NETHER::gamecycle(int w,int h)
 		break;
 	} /* switch */ 
 
-	for(i=0;i<SDL_NUM_SCANCODES;i++) old_keyboard[i]=keyboard[i];
+	for(i=0;i<KEY_COUNT;i++) old_keyboard[i]=keyboard[i];
 
 #ifdef _WRITE_REPORT_
 	fprintf(debug_fp,"Cycle end: %i\n",retval);
@@ -1209,7 +1201,7 @@ void NETHER::options_draw(int w,int h)
 						       else glColor3f(0.5,0.5,1.0);
 			glTranslatef(0,-2,0);
 			sprintf(filename,"savedgame%i.txt",i);
-			fp=fopen(filename,"r");
+			fp=user_open(filename,"r");
 			if (fp==0) {
 				scaledglprintf(0.01,0.01,"SLOT%i - EMPTY",i+1);
 			} else {
@@ -1238,7 +1230,7 @@ void NETHER::options_draw(int w,int h)
 						       else glColor3f(0.5,0.5,1.0);
 			glTranslatef(0,-2,0);
 			sprintf(filename,"savedgame%i.txt",i);
-			fp=fopen(filename,"r");
+			fp=user_open(filename,"r");
 			if (fp==0) {
 				scaledglprintf(0.01,0.01,"SLOT%i - EMPTY",i+1);
 			} else {
