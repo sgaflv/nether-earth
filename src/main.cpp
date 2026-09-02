@@ -93,6 +93,11 @@ bool initialization(void)
 
     platform_log_gl_info();
 
+    /* The drop shadows are stencil-buffer based; without one they would   */
+    /* smear over the whole screen, so drop them instead.                 */
+    if(platform_stencil_bits()<1)
+        shadows=0;
+
     pause(400);
 
     if(!audio_init())
@@ -961,7 +966,16 @@ void pad_test(void)
 /* key_test */
 
 
-int main(int argc,char** argv)
+/* ------------------------------------------------------------------ */
+/* Entry point.                                                       */
+/*                                                                    */
+/* Android has no C-runtime main() for an APK: the Activity spawns a  */
+/* dedicated game thread that calls game_main() directly (see         */
+/* android_bridge.cpp). The real body therefore lives in game_main(), */
+/* and desktop builds get a one-line main() wrapper below.            */
+/* ------------------------------------------------------------------ */
+
+extern "C" int game_main(int argc,char** argv)
 {
 
     int time,act_time;
@@ -1167,3 +1181,12 @@ int main(int argc,char** argv)
 
     return 0;
 }
+
+#if !defined(__ANDROID__) && !defined(ANDROID)
+
+int main(int argc,char** argv)
+{
+    return game_main(argc,argv);
+}
+
+#endif

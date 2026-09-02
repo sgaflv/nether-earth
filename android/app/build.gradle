@@ -1,0 +1,112 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.example.nether"
+    compileSdk 35
+
+    /* Pinned so the build does not silently change compiler versions. */
+    ndkVersion "27.0.12077973"
+
+    defaultConfig {
+        applicationId "com.example.nether"
+
+        /*
+         * 23 (Android 6.0) is the floor because the asset backend uses
+         * fmemopen(), which Bionic only exposes from API 23 onwards.
+         */
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        ndk {
+            /* Android TV target is 32-bit ARM only; nothing else is built. */
+            abiFilters "armeabi-v7a"
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++11 -fexceptions -frtti"
+                arguments "-DANDROID_ARM_NEON=ON"
+            }
+        }
+    }
+
+    buildFeatures {
+        buildConfig false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            /*
+             * The repository's own assets/ tree is packaged directly. Do NOT
+             * create android/app/src/main/assets and do NOT copy the tree.
+             */
+            assets.srcDirs = [file("../../assets")]
+        }
+    }
+
+    androidResources {
+        /* SoundPool loads the effects via AssetManager.openFd(), which needs
+           the WAVs stored uncompressed. */
+        noCompress += ["wav"]
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file("src/main/cpp/CMakeLists.txt")
+            version "3.22.1"
+        }
+    }
+
+    signingConfigs {
+        /*
+         * Optional real signing key, for anyone who wants to publish this.
+         * Supply the four properties (e.g. in ~/.gradle/gradle.properties or
+         * with -P on the command line) and assembleRelease uses them.
+         */
+        if (project.hasProperty("NETHER_KEYSTORE")) {
+            release {
+                storeFile file(NETHER_KEYSTORE)
+                storePassword NETHER_KEYSTORE_PASSWORD
+                keyAlias NETHER_KEY_ALIAS
+                keyPassword NETHER_KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            /*
+             * assembleRelease is the artifact meant for the TV: the native
+             * code is compiled -O2 rather than the -O0 a debug variant gets.
+             * Without an explicit key it is signed with the local Android
+             * debug key, which is enough to sideload onto a TV and keeps
+             * private keys out of the repository.
+             */
+            signingConfig project.hasProperty("NETHER_KEYSTORE")
+                ? signingConfigs.release
+                : signingConfigs.debug
+
+            minifyEnabled false
+            ndk {
+                debugSymbolLevel "none"
+            }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            /* Store libnether.so uncompressed and mmap it straight out of the
+               APK: smaller install footprint and a faster cold start. */
+            useLegacyPackaging = false
+        }
+    }
+}

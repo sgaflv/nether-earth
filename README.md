@@ -76,3 +76,22 @@ before redistributing or relicensing it.
 
 The original 1987 game is a separate copyrighted work; this is an independent
 fan remake.
+
+
+## Android TV / ARM32
+
+An SDL-free Android wrapper lives under `android/`. It builds a single
+`armeabi-v7a` APK using Android EGL / OpenGL ES 1.x, Android gamepad and
+D-pad input, and `SoundPool` for sound. The repository's existing `assets/`
+directory is Gradle's asset source directory, so it is packaged as-is rather
+than copied into an Android-specific asset folder.
+
+```bash
+just apk        # or: cd android && ./gradlew :app:assembleRelease
+just install
+```
+
+This needs a JDK 17+ and an Android SDK (platform 35, build-tools 35, NDK
+27.0.12077973, CMake 3.22.1) at `ANDROID_HOME`; Gradle comes from the checked-in
+wrapper. See `android/README.md` for the controller layout, where the config
+and save games are stored, and the known limitations.

@@ -18,6 +18,7 @@
   #include <OpenGL/gl.h>
 #elif defined(__ANDROID__) || defined(ANDROID)
   #include <GLES/gl.h>
+  typedef double GLdouble;
 #elif defined(_WIN32)
   #include <windows.h>
   #include <GL/gl.h>

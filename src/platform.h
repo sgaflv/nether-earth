@@ -55,6 +55,14 @@ void platform_show_cursor(int show);
 /* creation to record GL version, renderer and vendor.                  */
 void platform_log_gl_info(void);
 
+/*
+ * Number of stencil bits in the current GL context (0 if there is no
+ * stencil buffer). The game's drop shadows need a stencil buffer, so it
+ * turns them off when this reports 0 rather than drawing them wrong.
+ * Only meaningful after platform_create_window() has succeeded.
+ */
+int platform_stencil_bits(void);
+
 /* ------------------------------------------------------------------ */
 /* Input                                                               */
 /* ------------------------------------------------------------------ */

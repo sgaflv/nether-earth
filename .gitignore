@@ -18,4 +18,5 @@ android/build/
 android/local.properties
 android/third_party/
 android/**/build/
+android/**/.cxx/
 *.apk

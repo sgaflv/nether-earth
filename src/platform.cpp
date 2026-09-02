@@ -181,6 +181,17 @@ void platform_show_cursor(int show)
 	SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE);
 }
 
+int platform_stencil_bits(void)
+{
+	int bits = 0;
+
+	if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &bits) != 0)
+		return 0;
+
+	return bits;
+}
+
+
 void platform_log_gl_info(void)
 {
 	const unsigned char *glversion = glGetString(GL_VERSION);

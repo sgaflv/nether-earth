@@ -47,7 +47,6 @@ void NETHER::draw_radar(void)
 		if ((startx+maxx)>(map_w*2)) startx=(map_w*2)-maxx;
 		if (startx<0) startx=0;
 
-		glNormal3f(0,0,1);
 		for(y=0;y<maxy;y++) {
 			for(x=0;x<maxx;x++) {
 				if (x+startx<(map_w*2) &&
