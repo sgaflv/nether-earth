@@ -38,7 +38,26 @@ void NETHER::draw_radar(void)
 	{
 		int x,y;
 		int starty,startx;
-		int maxy=94,maxx=16;
+		const int maxy=94,maxx=16;
+
+		/*
+		 * The map cells used to be one glDrawArrays each: 94*16 = 1504 draw
+		 * calls per radar frame, which dwarfed everything else the game
+		 * draws. They are gathered into a single vertex/colour array and
+		 * issued as one call instead. Sized for the fixed maxy*maxx grid,
+		 * six vertices (two triangles) per cell.
+		 */
+		static float   cell_vtx[maxy*maxx*6*3];
+		static GLfloat cell_col[maxy*maxx*6*4];
+		int nvtx=0;
+
+		/*
+		 * Colour carried between cells: an unrecognised terrain value sets
+		 * no colour and inherits the previous cell's, exactly as the
+		 * per-cell glColor3f version did. On entry that is the colour the
+		 * "RADAR:" caption above was drawn with.
+		 */
+		float cr=0.5f,cg=0.5f,cb=1.0f;
 
 		startx=(int)((shipp.x-4)*2);
 		starty=(int)((shipp.y-23)*2);
@@ -54,58 +73,67 @@ void NETHER::draw_radar(void)
 					discreetmap!=0) {
 					switch(discreetmap[x+startx+(y+starty)*(map_w*2)]) {
 					case T_GRASS: 
-							glColor3f(0.0,1.0,0.0);
+							cr=0.0f; cg=1.0f; cb=0.0f;
 							break;
 					case T_SAND:
-							glColor3f(0.2,0.9,0.0);
+							cr=0.2f; cg=0.9f; cb=0.0f;
 							break;
 					case T_MOUNTAINS:
-							glColor3f(0.4,0.8,0.0);
+							cr=0.4f; cg=0.8f; cb=0.0f;
 							break;
 					case T_HOLE:
-							glColor3f(0.0,0.8,0.0);
+							cr=0.0f; cg=0.8f; cb=0.0f;
 							break;
 					case T_LOWBUILDING:
-							glColor3f(0.3f,0.3f,0.3f);
+							cr=0.3f; cg=0.3f; cb=0.3f;
 							break;
 					case T_BUILDING:
-							glColor3f(0.0,0.0,0.0);
+							cr=0.0f; cg=0.0f; cb=0.0f;
 							break;
 					case T_SHIP:
-							glColor3f(1.0f,1.0f,1.0f);
+							cr=1.0f; cg=1.0f; cb=1.0f;
 							break;
 					case T_ROBOT:
-							glColor3f(0.0,0.0,1.0f);
+							cr=0.0f; cg=0.0f; cb=1.0f;
 							break;
 					case T_EROBOT:
-							glColor3f(1.0f,0.0,0.0);
+							cr=1.0f; cg=0.0f; cb=0.0f;
 							break;	
 					} /* switch */ 
 					{
-						float q[4*3] = {
-							(float)(30+y),     (float)(maxx-(x+1)), 0.0f,
-							(float)(30+y+1),   (float)(maxx-(x+1)), 0.0f,
-							(float)(30+y+1),   (float)(maxx-x),     0.0f,
-							(float)(30+y),     (float)(maxx-x),     0.0f
+						/* The quad's corners, wound as two triangles. */
+						const float x0=(float)(30+y),   x1=(float)(30+y+1);
+						const float y0=(float)(maxx-(x+1)), y1=(float)(maxx-x);
+						const float corner[6][2] = {
+							{x0,y0},{x1,y0},{x1,y1},
+							{x0,y0},{x1,y1},{x0,y1}
 						};
-						glEnableClientState(GL_VERTEX_ARRAY);
-						glVertexPointer(3,GL_FLOAT,0,q);
-						glDrawArrays(GL_TRIANGLE_FAN,0,4);
-						glDisableClientState(GL_VERTEX_ARRAY);
-					}
-				} /* if */ 
+						int c;
 
-/*				if (atackmap[x+(y+starty)*(map_w*2)]!=0) {
-					glColor3f(1.0,1.0,0.0);
-					glBegin(GL_QUADS);
-					glVertex3f(30+y,(map_w*2)-(x+1),1);
-					glVertex3f(30+y+1,(map_w*2)-(x+1),1);
-					glVertex3f(30+y+1,(map_w*2)-x,1);
-					glVertex3f(30+y,(map_w*2)-x,1);
-					glEnd();
+						for(c=0;c<6;c++) {
+							cell_vtx[nvtx*3+0]=corner[c][0];
+							cell_vtx[nvtx*3+1]=corner[c][1];
+							cell_vtx[nvtx*3+2]=0.0f;
+							cell_col[nvtx*4+0]=cr;
+							cell_col[nvtx*4+1]=cg;
+							cell_col[nvtx*4+2]=cb;
+							cell_col[nvtx*4+3]=1.0f;
+							nvtx++;
+						} /* for */ 
+					}
 				} /* if */ 
 			} /* for */ 
 		} /* for */ 
+
+		if (nvtx>0) {
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(3,GL_FLOAT,0,cell_vtx);
+			glColorPointer(4,GL_FLOAT,0,cell_col);
+			glDrawArrays(GL_TRIANGLES,0,nvtx);
+			glDisableClientState(GL_COLOR_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);
+		} /* if */ 
 
 		/* Draw the SHIP: */ 
 		x=(int)(shipp.x*2-startx);

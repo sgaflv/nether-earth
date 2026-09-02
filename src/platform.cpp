@@ -98,6 +98,16 @@ unsigned int platform_ticks(void)
 	return (unsigned int)SDL_GetTicks();
 }
 
+#include <stdarg.h>
+void platform_log_diag(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	fputc('\n', stderr);
+	va_end(ap);
+}
+
 void platform_sleep(unsigned int ms)
 {
 	SDL_Delay(ms);

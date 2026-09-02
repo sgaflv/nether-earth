@@ -85,6 +85,10 @@ static float s_lx = 0.0f, s_ly = 0.0f;
 static float s_rx = 0.0f, s_ry = 0.0f;
 static float s_lt = 0.0f, s_rt = 0.0f;
 
+/* D-pad as a hat switch (ABS_HAT0X/ABS_HAT0Y), sent by controllers that
+   expose the pad as motion axes rather than as AKEYCODE_DPAD_* keys. */
+static float s_hx = 0.0f, s_hy = 0.0f;
+
 static int s_gpad_up_key = KEY_UP;
 static int s_gpad_down_key = KEY_DOWN;
 static int s_gpad_left_key = KEY_LEFT;
@@ -135,6 +139,12 @@ static void rebuild_gamepad_locked(void)
     if (s_pad_buttons[KEY_GAMEPAD_DPAD_DOWN])  gpad_key(KEY_GAMEPAD_DPAD_DOWN, s_gpad_down_key);
     if (s_pad_buttons[KEY_GAMEPAD_DPAD_LEFT])  gpad_key(KEY_GAMEPAD_DPAD_LEFT, s_gpad_left_key);
     if (s_pad_buttons[KEY_GAMEPAD_DPAD_RIGHT]) gpad_key(KEY_GAMEPAD_DPAD_RIGHT, s_gpad_right_key);
+
+    /* D-pad reported as a hat switch: treat it like the D-pad buttons. */
+    if (s_hy < -0.5f) gpad_key(KEY_GAMEPAD_DPAD_UP, s_gpad_up_key);
+    if (s_hy >  0.5f) gpad_key(KEY_GAMEPAD_DPAD_DOWN, s_gpad_down_key);
+    if (s_hx < -0.5f) gpad_key(KEY_GAMEPAD_DPAD_LEFT, s_gpad_left_key);
+    if (s_hx >  0.5f) gpad_key(KEY_GAMEPAD_DPAD_RIGHT, s_gpad_right_key);
 
     if (s_ly < -0.35f) gpad_key(KEY_GAMEPAD_STICK_UP, s_gpad_up_key);
     if (s_ly >  0.35f) gpad_key(KEY_GAMEPAD_STICK_DOWN, s_gpad_down_key);
@@ -199,6 +209,73 @@ static int android_key_to_key(int k)
 }
 
 /*
+ * Config ladder, tried in order. The game draws its drop shadows through the
+ * stencil buffer, so a stencil-capable config is asked for first; a driver
+ * without one still gets to run, with platform_stencil_bits() reporting 0 so
+ * the game turns shadows off instead of drawing them wrong. The last entry
+ * puts no constraint on colour depth, which lets an RGB565-only device in.
+ */
+static const EGLint s_cfg_rgb8_d16_s8[] = {
+    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
+    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+    EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
+    EGL_DEPTH_SIZE, 16, EGL_STENCIL_SIZE, 8,
+    EGL_NONE
+};
+static const EGLint s_cfg_any_d16_s8[] = {
+    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
+    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+    EGL_DEPTH_SIZE, 16, EGL_STENCIL_SIZE, 8,
+    EGL_NONE
+};
+static const EGLint s_cfg_rgb8_d16[] = {
+    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
+    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+    EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
+    EGL_DEPTH_SIZE, 16,
+    EGL_NONE
+};
+static const EGLint s_cfg_any_d16[] = {
+    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
+    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+    EGL_DEPTH_SIZE, 16,
+    EGL_NONE
+};
+
+static const EGLint *const s_cfg_ladder[] = {
+    s_cfg_rgb8_d16_s8,
+    s_cfg_any_d16_s8,
+    s_cfg_rgb8_d16,
+    s_cfg_any_d16
+};
+static const char *const s_cfg_names[] = {
+    "RGB888 + depth16 + stencil8",
+    "any colour + depth16 + stencil8",
+    "RGB888 + depth16, no stencil",
+    "any colour + depth16, no stencil"
+};
+#define CFG_LADDER_LEN ((int)(sizeof(s_cfg_ladder)/sizeof(s_cfg_ladder[0])))
+
+/* Which rung worked; kept so later surface rebuilds reuse the same config. */
+static int s_cfg_rung = 0;
+
+static void log_config_locked(void)
+{
+    EGLint r=0,g=0,b=0,a=0,d=0,st=0,id=0;
+
+    eglGetConfigAttrib(s_display, s_config, EGL_RED_SIZE, &r);
+    eglGetConfigAttrib(s_display, s_config, EGL_GREEN_SIZE, &g);
+    eglGetConfigAttrib(s_display, s_config, EGL_BLUE_SIZE, &b);
+    eglGetConfigAttrib(s_display, s_config, EGL_ALPHA_SIZE, &a);
+    eglGetConfigAttrib(s_display, s_config, EGL_DEPTH_SIZE, &d);
+    eglGetConfigAttrib(s_display, s_config, EGL_STENCIL_SIZE, &st);
+    eglGetConfigAttrib(s_display, s_config, EGL_NATIVE_VISUAL_ID, &id);
+
+    LOGI("EGL config: r%d g%d b%d a%d depth%d stencil%d visual=%d (%s)",
+         r, g, b, a, d, st, id, s_cfg_names[s_cfg_rung]);
+}
+
+/*
  * Display, config and GL context. Created once and then kept: the EGL
  * *surface* comes and goes with the SurfaceView, but tearing the context down
  * with it would drop every texture the game has uploaded, and the game has no
@@ -206,26 +283,6 @@ static int android_key_to_key(int k)
  */
 static int ensure_context_locked(void)
 {
-    /*
-     * The game draws its drop shadows through the stencil buffer, so a
-     * stencil-capable config is requested first; only if the driver has none
-     * do we fall back to a plain config (platform_stencil_bits() then reports
-     * 0 and the caller turns shadows off).
-     */
-    EGLint attrs_stencil[] = {
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
-        EGL_DEPTH_SIZE, 16, EGL_STENCIL_SIZE, 8,
-        EGL_NONE
-    };
-    EGLint attrs_plain[] = {
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
-        EGL_DEPTH_SIZE, 16,
-        EGL_NONE
-    };
     EGLint ctxattrs[] = { EGL_CONTEXT_CLIENT_VERSION, 1, EGL_NONE };
     EGLint n = 0;
 
@@ -235,32 +292,35 @@ static int ensure_context_locked(void)
     if (s_display == EGL_NO_DISPLAY) {
         s_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (s_display == EGL_NO_DISPLAY) {
-            LOGE("eglGetDisplay failed");
+            LOGE("eglGetDisplay failed (0x%x)", eglGetError());
             return 0;
         }
         /* Android reference-counts this against eglTerminate(). */
         if (!eglInitialize(s_display, 0, 0)) {
-            LOGE("eglInitialize failed");
+            LOGE("eglInitialize failed (0x%x)", eglGetError());
             s_display = EGL_NO_DISPLAY;
             return 0;
         }
+        LOGI("EGL %s / %s",
+             eglQueryString(s_display, EGL_VERSION),
+             eglQueryString(s_display, EGL_VENDOR));
     }
 
-    if (!eglChooseConfig(s_display, attrs_stencil, &s_config, 1, &n) || n == 0) {
-        LOGE("No stencil-capable EGL config; shadows will be disabled");
-        n = 0;
-        if (!eglChooseConfig(s_display, attrs_plain, &s_config, 1, &n) || n == 0) {
-            LOGE("No usable OpenGL ES 1.x EGL config");
-            return 0;
-        }
+    if (!eglChooseConfig(s_display, s_cfg_ladder[s_cfg_rung],
+                         &s_config, 1, &n) || n == 0) {
+        LOGE("eglChooseConfig found no '%s' config (0x%x)",
+             s_cfg_names[s_cfg_rung], eglGetError());
+        return 0;
     }
+
+    log_config_locked();
 
     s_stencil_bits = 0;
     eglGetConfigAttrib(s_display, s_config, EGL_STENCIL_SIZE, &s_stencil_bits);
 
     s_context = eglCreateContext(s_display, s_config, EGL_NO_CONTEXT, ctxattrs);
     if (s_context == EGL_NO_CONTEXT) {
-        LOGE("eglCreateContext failed");
+        LOGE("eglCreateContext failed (0x%x)", eglGetError());
         return 0;
     }
 
@@ -282,10 +342,32 @@ static void destroy_surface_locked(void)
     s_egl_alive = 0;
 }
 
-static int create_surface_locked(void)
+static void drop_context_locked(void)
 {
-    if (!s_window || !ensure_context_locked())
+    destroy_surface_locked();
+
+    if (s_display != EGL_NO_DISPLAY && s_context != EGL_NO_CONTEXT)
+        eglDestroyContext(s_display, s_context);
+
+    s_context = EGL_NO_CONTEXT;
+    s_stencil_bits = 0;
+}
+
+/* One attempt with the config currently on s_cfg_rung. */
+static int try_surface_locked(void)
+{
+    EGLint format = 0;
+
+    if (!ensure_context_locked())
         return 0;
+
+    /*
+     * Match the window's buffer format to the config's native visual before
+     * creating the surface. eglCreateWindowSurface does this itself on recent
+     * Android, but not everywhere, and a mismatch is an EGL_BAD_MATCH.
+     */
+    if (eglGetConfigAttrib(s_display, s_config, EGL_NATIVE_VISUAL_ID, &format))
+        ANativeWindow_setBuffersGeometry(s_window, 0, 0, format);
 
     s_surface = eglCreateWindowSurface(s_display, s_config, s_window, 0);
     if (s_surface == EGL_NO_SURFACE) {
@@ -300,46 +382,71 @@ static int create_surface_locked(void)
         s_surface = EGL_NO_SURFACE;
 
         if (err == EGL_CONTEXT_LOST) {
-            /* GPU reset. The textures are gone with the context and the game
-               cannot be told to re-upload them, so say so loudly instead of
-               drawing garbage. */
+            /* GPU reset. The textures went with the context and the game has
+               no path to re-upload them, so say so loudly. */
             LOGE("EGL context lost; restart the app to reload the textures");
-            eglDestroyContext(s_display, s_context);
-            s_context = EGL_NO_CONTEXT;
+            drop_context_locked();
         } else {
             LOGE("eglMakeCurrent failed (0x%x)", err);
         }
         return 0;
     }
 
-    /* Tie the frame rate to the display: the game logic runs on its own
-       20 ms clock, so there is nothing to gain from drawing faster. */
-    eglSwapInterval(s_display, 1);
+    /*
+     * Keep the swap non-blocking. Blocking on vsync (eglSwapInterval 1) was
+     * tried on this device and eglSwapBuffers then parked for a whole ~4 s,
+     * freezing the game thread; the driver only lets the loop run unblocked
+     * when the present returns immediately. The render loop already paces
+     * itself against the 20 ms logic clock, so the swap does not need to wait
+     * on the display.
+     */
+    eglSwapInterval(s_display, 0);
 
     {
         EGLint w = 0, h = 0;
         eglQuerySurface(s_display, s_surface, EGL_WIDTH, &w);
         eglQuerySurface(s_display, s_surface, EGL_HEIGHT, &h);
         if (w > 0 && h > 0) { s_surface_w = w; s_surface_h = h; }
+        LOGI("EGL surface ready, %dx%d", s_surface_w, s_surface_h);
     }
 
     s_egl_alive = 1;
     return 1;
 }
 
+/* Walk down the config ladder until one produces a usable surface. */
+static int create_surface_locked(void)
+{
+    if (!s_window) {
+        LOGE("create_surface_locked with no native window");
+        return 0;
+    }
+
+    while (s_cfg_rung < CFG_LADDER_LEN) {
+        if (try_surface_locked())
+            return 1;
+
+        /* Retry with the next config; that needs a matching context. */
+        drop_context_locked();
+        s_cfg_rung++;
+
+        if (s_cfg_rung < CFG_LADDER_LEN)
+            LOGE("Falling back to EGL config '%s'", s_cfg_names[s_cfg_rung]);
+    }
+
+    LOGE("No EGL config on this device could give us a window surface");
+    return 0;
+}
+
 /* Full teardown, context included: only for platform_destroy_window(). */
 static void destroy_egl_locked(void)
 {
-    destroy_surface_locked();
+    drop_context_locked();
 
-    if (s_display != EGL_NO_DISPLAY) {
-        if (s_context != EGL_NO_CONTEXT)
-            eglDestroyContext(s_display, s_context);
+    if (s_display != EGL_NO_DISPLAY)
         eglTerminate(s_display);
-    }
 
     s_display = EGL_NO_DISPLAY;
-    s_context = EGL_NO_CONTEXT;
     s_config = 0;
 }
 
@@ -390,6 +497,8 @@ void android_platform_surface_created(ANativeWindow *window)
         s_surface_h = ANativeWindow_getHeight(window);
     }
 
+    LOGI("surfaceCreated %p (%dx%d)", (void*)window, s_surface_w, s_surface_h);
+
     pthread_cond_broadcast(&s_surface_cond);
     pthread_mutex_unlock(&s_mutex);
 }
@@ -397,6 +506,8 @@ void android_platform_surface_created(ANativeWindow *window)
 void android_platform_surface_destroyed(void)
 {
     struct timespec deadline;
+
+    LOGI("surfaceDestroyed; waiting for the render thread to let go");
 
     pthread_mutex_lock(&s_mutex);
     s_surface_available = 0;
@@ -462,6 +573,14 @@ void android_platform_motion(float lx, float ly, float rx, float ry, float lt, f
     pthread_mutex_unlock(&s_mutex);
 }
 
+void android_platform_hat(float hx, float hy)
+{
+    pthread_mutex_lock(&s_mutex);
+    s_gamepad_connected = 1;
+    s_hx = hx; s_hy = hy;
+    pthread_mutex_unlock(&s_mutex);
+}
+
 unsigned int platform_ticks(void)
 {
     static struct timespec base;
@@ -471,6 +590,17 @@ unsigned int platform_ticks(void)
     clock_gettime(CLOCK_MONOTONIC, &now);
     return (unsigned int)((now.tv_sec-base.tv_sec)*1000u +
                           (now.tv_nsec-base.tv_nsec)/1000000u);
+}
+
+#include <stdarg.h>
+void platform_log_diag(const char *fmt, ...)
+{
+    char buf[512];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    LOGE("diag: %s", buf);
 }
 
 void platform_sleep(unsigned int ms)
@@ -533,6 +663,9 @@ int platform_create_window(int w, int h, int fullscreen)
 
     ok = s_egl_alive;
     pthread_mutex_unlock(&s_mutex);
+
+    if (!ok)
+        LOGE("platform_create_window failed; the game cannot start");
 
     return ok;
 }

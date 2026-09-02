@@ -10,12 +10,14 @@
 
 #define LOG_TAG "NetherEarth"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 
 extern void android_platform_surface_created(ANativeWindow*);
 extern void android_platform_surface_destroyed(void);
 extern void android_platform_surface_size_changed(int,int);
 extern int  android_platform_key(int,int,int);
 extern void android_platform_motion(float,float,float,float,float,float,int);
+extern void android_platform_hat(float,float);
 
 static JavaVM *s_vm=0;
 static jclass s_activity=0;
@@ -94,6 +96,15 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void*)
     s_audio_free=env->GetStaticMethodID(s_activity,"audioFree","(I)V");
     s_audio_shutdown=env->GetStaticMethodID(s_activity,"audioShutdown","()V");
     s_on_native_exit=env->GetStaticMethodID(s_activity,"onNativeExit","()V");
+
+    if(!s_audio_load || !s_audio_play || !s_audio_free || !s_audio_shutdown ||
+       !s_on_native_exit) {
+        LOGE("MainActivity is missing a method the native side calls");
+        env->ExceptionClear();
+        return JNI_ERR;
+    }
+
+    LOGI("JNI_OnLoad done");
     return JNI_VERSION_1_6;
 }
 
@@ -150,6 +161,12 @@ Java_com_example_nether_MainActivity_nativeMotion(JNIEnv *,jobject,jfloat lx,jfl
     android_platform_motion(lx,ly,rx,ry,lt,rt,gamepad?1:0);
 }
 
+extern "C" JNIEXPORT void JNICALL
+Java_com_example_nether_MainActivity_nativeHat(JNIEnv *,jobject,jfloat hx,jfloat hy)
+{
+    android_platform_hat(hx,hy);
+}
+
 /*
  * The game runs on its own thread so the Java UI thread stays free for
  * Surface callbacks and input dispatch; game_main() blocks until Java hands
@@ -171,7 +188,12 @@ static void *game_thread(void*)
     if(s_vm && s_vm->AttachCurrentThread(&env,0)!=JNI_OK)
         LOGE("Could not attach the game thread to the JVM; audio is disabled");
 
-    game_main(1,argv);
+    LOGI("game thread starting");
+
+    {
+        int rc=game_main(1,argv);
+        LOGI("game_main returned %d; shutting the process down",rc);
+    }
 
     android_assets_shutdown();
 

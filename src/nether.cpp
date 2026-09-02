@@ -617,8 +617,18 @@ void NETHER::draw(int width,int height)
 						    else message_tile[1]->draw(1.0,1.0,1.0);
 	} /* if */ 
 
+	/*
+	 * The radar and the status panel below/right of the game view are drawn
+	 * every frame. They used to be redrawn only when redrawradar/redrawmenu
+	 * said they were dirty, leaving the rest of the frame to persist in the
+	 * colour buffer -- but a swapped EGL back buffer is undefined, so on
+	 * Android that showed whatever the recycled buffer happened to hold.
+	 * Drawing them unconditionally also makes the per-frame cost even, which
+	 * the old 2-frames-in-4 radar schedule very much did not.
+	 */
+
 	/* Draw the RADAR screen: */ 
-	if (show_radar && redrawradar<=1) {
+	if (show_radar) {
 
 		glLightfv(GL_LIGHT0,GL_POSITION,lightpos2);
 		glClearColor(0.0,0.0,0,0);
@@ -634,8 +644,8 @@ void NETHER::draw(int width,int height)
 	if (redrawradar<0) redrawradar=3;
 
 	/* Draw the STATUS screen: */ 
-	if (redrawmenu!=0) {
-		redrawmenu--;
+	{
+		if (redrawmenu!=0) redrawmenu--;
 
 		glLightfv(GL_LIGHT0,GL_POSITION,lightpos2);
 		glClearColor(0,0,0.2,0);

@@ -25,8 +25,11 @@ extern "C" {
 /*                                                                     */
 /* Monotonic milliseconds since an arbitrary start point. Never moves  */
 /* backwards, unaffected by wall-clock changes.                        */
-/* ------------------------------------------------------------------ */
 unsigned int platform_ticks(void);
+
+/* Diagnostic log helper: on Android goes to logcat, on desktop to    */
+/* stderr. Format/args like printf.                                   */
+void platform_log_diag(const char *fmt, ...);
 
 /* Busy-sleep / yield for at least 'ms' milliseconds. */
 void platform_sleep(unsigned int ms);

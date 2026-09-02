@@ -4,10 +4,12 @@ apk_release := "android/app/build/outputs/apk/release/app-release.apk"
 build:
     make -j
 
-# Android TV / armeabi-v7a APK, native code optimised (needs ANDROID_HOME)
+# Android TV / armeabi-v7a APK, native code optimised (needs ANDROID_HOME).
+# Produces nether-earth.apk in the project root.
 apk:
     cd android && ./gradlew :app:assembleRelease
-    @ls -l {{apk_release}}
+    cp {{apk_release}} nether-earth.apk
+    @ls -l nether-earth.apk
 
 # Same, but a debuggable variant with unoptimised native code.
 apk-debug:
@@ -27,8 +29,18 @@ deploy: apk
     adb install -r -d {{apk_release}}
     just run
 
+# Live log: the game's own tag, plus crashes and EGL/activity events.
 logs:
-    adb logcat -s NetherEarth:V AndroidRuntime:E DEBUG:V
+    adb logcat -c
+    adb logcat -s NetherEarth:V AndroidRuntime:E DEBUG:V libEGL:V ActivityManager:I
+
+# Everything the device has buffered since boot for this app, no filtering.
+logs-dump:
+    adb logcat -d -v time | grep -iE "nether|AndroidRuntime|libEGL|DEBUG" | tail -200
+
+# The native/Java crash buffer, if the app died rather than exited.
+logs-crash:
+    adb logcat -b crash -d -v time | tail -100
 
 run game="nether":
     adb shell monkey -p $(adb shell pm list packages | grep -i "{{game}}" | head -n1 | sed 's/^package://' | tr -d '\r') 1

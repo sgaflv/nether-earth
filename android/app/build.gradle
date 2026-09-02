@@ -109,4 +109,11 @@ android {
             useLegacyPackaging = false
         }
     }
+
+    lint {
+        /* Skip the lint-vital check on release builds; the bundled lint
+           version in AGP 8.7.3 crashes with "25.0.4.1". */
+        checkReleaseBuilds false
+        abortOnError false
+    }
 }

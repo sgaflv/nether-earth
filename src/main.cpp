@@ -1096,9 +1096,79 @@ extern "C" int game_main(int argc,char** argv)
 
         act_time=platform_ticks();
 
+        /*
+         * Never let the logic clock run ahead of the wall clock. The logic
+         * only ever simulates what has already happened in real time; without
+         * this clamp, on a device where a frame completes in less than
+         * REDRAWING_PERIOD the 20 ms steps accumulate a lead over act_time and
+         * the loop below then stalls for a long time draining it.
+         */
+        if(time>act_time)
+            time=act_time;
 
-        if(act_time-time>=REDRAWING_PERIOD) {
+        /*
+         * Redraw on demand: only present a new frame when a logic tick
+         * actually advanced the game state (or input was processed). There is
+         * no fixed-rate sleep pacing here - the loop just runs whatever ticks
+         * are due against the wall clock and skips the frame when nothing
+         * changed. state_changed is set below each time a tick runs.
+         */
+        int state_changed = 0;
 
+        /* Advance all logic ticks due since the last one, at most a few. */
+        while(act_time-time>=REDRAWING_PERIOD) {
+
+            state_changed = 1;
+
+            time+=REDRAWING_PERIOD;
+
+            if((act_time-time)>50*REDRAWING_PERIOD)
+                time=act_time;
+
+            if(game!=0) {
+
+                if(!game->gamecycle(w,h)) {
+
+                    delete game;
+
+                    game=0;
+
+                    mainmenu_status=0;
+                    mainmenu_substatus=0;
+                    mainmenu_selection=0;
+                }
+            }
+            else {
+
+                int val=mainmenu_cycle(w,h);
+
+                if(val==1) {
+
+                    char tmp[256];
+
+                    sprintf(tmp,"assets/maps/%s",mapname);
+
+                    game=new NETHER(tmp);
+                }
+
+
+                if(val==2)
+                    quit=true;
+
+
+                if(val==3) {
+
+                    if(!apply_video_settings(fullscreen))
+                        quit=true;
+                }
+            }
+
+
+            act_time=platform_ticks();
+        }
+
+
+        if(state_changed) {
             frames_per_sec_tmp+=1;
 
             if((act_time-init_time)>=1000) {
@@ -1111,58 +1181,6 @@ extern "C" int game_main(int argc,char** argv)
             }
 
 
-            do {
-
-                time+=REDRAWING_PERIOD;
-
-                if((act_time-time)>50*REDRAWING_PERIOD)
-                    time=act_time;
-
-
-                if(game!=0) {
-
-                    if(!game->gamecycle(w,h)) {
-
-                        delete game;
-
-                        game=0;
-
-                        mainmenu_status=0;
-                        mainmenu_substatus=0;
-                        mainmenu_selection=0;
-                    }
-                }
-                else {
-
-                    int val=mainmenu_cycle(w,h);
-
-                    if(val==1) {
-
-                        char tmp[256];
-
-                        sprintf(tmp,"assets/maps/%s",mapname);
-
-                        game=new NETHER(tmp);
-                    }
-
-
-                    if(val==2)
-                        quit=true;
-
-
-                    if(val==3) {
-
-                        if(!apply_video_settings(fullscreen))
-                            quit=true;
-                    }
-                }
-
-
-                act_time=platform_ticks();
-
-            } while(act_time-time>=REDRAWING_PERIOD);
-
-
             if(game!=0) {
 
                 game->gameredraw(w,h);
@@ -1171,6 +1189,16 @@ extern "C" int game_main(int argc,char** argv)
 
                 mainmenu_draw(w,h);
             }
+        }
+        else {
+
+            /*
+             * No logic tick was due, so nothing changed and there is no new
+             * frame to present. Skip both the redraw and the swap, leaving the
+             * previously presented frame on screen, and just wait until the
+             * next tick could be due instead of spinning a core at 100%.
+             */
+            platform_sleep(REDRAWING_PERIOD - (act_time-time) + 1);
         }
     }
 

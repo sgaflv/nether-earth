@@ -49,7 +49,6 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         instance = this;
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        hideSystemUi();
 
         /* The APK's assets are read-only, so nether.cfg and the save games go
            to the app's private storage instead. */
@@ -64,6 +63,10 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         surface.setFocusableInTouchMode(true);
         setContentView(surface);
         surface.requestFocus();
+
+        /* Only after setContentView: hiding the system bars goes through the
+           window's DecorView, which does not exist before that. */
+        hideSystemUi();
 
         initAudio();
 
@@ -92,7 +95,25 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
     /* ------------------------------------------------------------------ */
 
     private void hideSystemUi() {
+        /*
+         * Going fullscreen is cosmetic, but the framework paths behind it are
+         * not uniformly null-safe across TV builds (PhoneWindow.
+         * getInsetsController() dereferences the DecorView unchecked on some
+         * Android 11 firmware). A game that will not start at all is a far
+         * worse outcome than visible system bars.
+         */
+        try {
+            hideSystemUiUnchecked();
+        } catch (Throwable t) {
+            android.util.Log.w("NetherEarth", "Could not hide the system bars", t);
+        }
+    }
+
+    private void hideSystemUiUnchecked() {
         if (Build.VERSION.SDK_INT >= 30) {
+            /* Forces installDecor(); getInsetsController() needs it. */
+            getWindow().getDecorView();
+
             getWindow().setDecorFitsSystemWindows(false);
             WindowInsetsController c = getWindow().getInsetsController();
             if (c != null) {
@@ -180,6 +201,11 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
                 if (rt == 0.0f) rt = e.getAxisValue(MotionEvent.AXIS_GAS);
 
                 nativeMotion(lx, ly, rx, ry, lt, rt, true);
+
+                /* D-pad exposed as a hat switch (motion axes) on this
+                   controller family, not as AKEYCODE_DPAD_* key events. */
+                nativeHat(e.getAxisValue(MotionEvent.AXIS_HAT_X),
+                          e.getAxisValue(MotionEvent.AXIS_HAT_Y));
                 return true;
             }
             return super.dispatchGenericMotionEvent(e);
@@ -305,5 +331,6 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
     private static native boolean nativeKey(int keyCode, boolean down, boolean gamepad);
     private static native void nativeMotion(float lx, float ly, float rx, float ry,
                                             float lt, float rt, boolean gamepad);
+    private static native void nativeHat(float hx, float hy);
     private static native void nativeStartGame();
 }
